@@ -1,63 +1,78 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow) {
-    ui->setupUi(this);
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
+
+    this->setMinimumWidth(600);
+    this->setMinimumHeight(400);
 
     imageDialog = new QFileDialog(this);
     imageDialog->setFileMode(QFileDialog::ExistingFile);
     imageDialog->setNameFilter(tr("Images (*.png *.jpg *bmp)"));
     imageDialog->setViewMode(QFileDialog::Detail);
 
-    img1 = new QImage();
-    img2 = new QImage();
+    QHBoxLayout *mainLayout = new QHBoxLayout();
+    QSplitter *mainSplit = new QSplitter(Qt::Horizontal);
 
-    scen1 = new QGraphicsScene();
-    scen2 = new QGraphicsScene();
+    mainSplit->setChildrenCollapsible(false);
+
+    for(int i=0; i<2; ++i) {
+        imgs[i] = new QImage();
+        view[i] = new QGraphicsView();
+        scen[i] = new QGraphicsScene();
+        btnOpen[i] = new QPushButton(tr("Cargar imagen"));
+
+        frame[i] = new QFrame();
+        imageContainer[i] = new QVBoxLayout();
+
+        imageContainer[i]->addWidget(view[i]);
+        imageContainer[i]->addWidget(btnOpen[i]);
+
+        frame[i]->setLayout(imageContainer[i]);
+        mainSplit->addWidget(frame[i]);
+
+        connect(btnOpen[i], SIGNAL(clicked()), this, SLOT(on_pushButton_clicked()));
+    }
+
+    mainLayout->addWidget(mainSplit);
+    this->setLayout(mainLayout);
 }
 
 MainWindow::~MainWindow() {
-    delete ui;
     delete imageDialog;
+
+    delete[] imgs;
+    delete[] scen;
+    delete[] view;
+    delete[] btnOpen;
+
+    delete[] frame;
+    delete[] imageContainer;
 }
 
-void MainWindow::on_pushButton1_clicked() {
+void MainWindow::LoadImage(bool pos) {
     QStringList fileNames;
+
     if (!imageDialog->exec()) return;
 
     fileNames = imageDialog->selectedFiles();
 
     QString imagePath = fileNames.first();
 
-    QSize scont = ui->graphicsView1->size();
+    QSize scont = view[pos]->size();
     scont -= QSize(5, 5);
 
-    img1->load(imagePath);
+    imgs[pos]->load(imagePath);
 
-    scen1->clear();
-    scen1->addPixmap(QPixmap::fromImage(img1->scaled(scont, Qt::KeepAspectRatio)));
+    scen[pos]->clear();
+    scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(scont, Qt::KeepAspectRatio)));
 
-    ui->graphicsView1->setScene(scen1);
+    view[pos]->setScene(scen[pos]);
 }
 
-void MainWindow::on_pushButton2_clicked() {
-    QStringList fileNames;
-    if (!imageDialog->exec()) return;
-
-    fileNames = imageDialog->selectedFiles();
-
-    QString imagePath = fileNames.first();
-
-    QSize scont = ui->graphicsView1->size();
-    scont -= QSize(5, 5);
-
-    img2->load(imagePath);
-
-    scen2->clear();
-    scen2->addPixmap(QPixmap::fromImage(img2->scaled(scont, Qt::KeepAspectRatio)));
-
-    ui->graphicsView2->clearMask();
-    ui->graphicsView2->setScene(scen2);
+void MainWindow::on_pushButton_clicked() {
+    if(sender() == btnOpen[LEFT]) {
+        LoadImage(LEFT);
+    } else {
+        LoadImage(RIGTH);
+    }
 }
