@@ -10,10 +10,19 @@ TARGET = nm-morph
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        mainwindow.cpp
+SOURCES += main.cpp \
+    window.cpp \
+    graphicsview.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += \
+    window.h \
+    graphicsview.h
 
 FORMS    +=
+
+
+
+
+
+
 
