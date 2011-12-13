@@ -7,9 +7,10 @@
 class GraphicsView : public QGraphicsView {
 public:    
     GraphicsView();
-    static QColor *colorDrawing;
 
+    static void colorDrawing(QColor);
     void enableDrawing(bool);
+
     void cleanLines(void);
     void undoLastLine(void);
     bool straightLine;
@@ -22,6 +23,7 @@ protected:
 private:
     bool drawing;
     bool able2Drawing;
+    static QPen *pen;
 
     int x1, x2, y1, y2;
 };

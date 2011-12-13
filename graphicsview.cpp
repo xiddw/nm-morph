@@ -1,10 +1,18 @@
 #include "graphicsview.h"
 
-QColor *GraphicsView::colorDrawing = new QColor(Qt::red);
+QPen *GraphicsView::pen = NULL;
 
 GraphicsView::GraphicsView()  {
     enableDrawing(false);
+
     drawing = false;    
+    straightLine = true;
+
+    pen = new QPen(Qt::red);
+    pen->setStyle(Qt::SolidLine);
+    pen->setCapStyle(Qt::RoundCap);
+    pen->setWidth(2);
+    pen->setColor(Qt::red);
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event) {
@@ -14,58 +22,69 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event) {
 void GraphicsView::mousePressEvent(QMouseEvent *event) {
     if(!able2Drawing) return;
 
-    setCursor(Qt::CrossCursor);
+    if(!straightLine) {
+        if(!drawing && (event->buttons() & Qt::LeftButton)) {
+            x1 = event->x();
+            y1 = event->y();
+        }
 
-    if(!drawing && (event->buttons() & Qt::LeftButton)) {
-        x1 = event->x() - 10;
-        y1 = event->y() - 10;
+        drawing = (event->buttons() & Qt::LeftButton);
+    } else {
+        if(!drawing && (event->buttons() & Qt::LeftButton)) {
+            x1 = event->x();
+            y1 = event->y();
+        }
+
+        drawing = (event->buttons() & Qt::LeftButton);
     }
-
-    drawing = (event->buttons() & Qt::LeftButton);
-
 }
 
 
 void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
     if(!able2Drawing) return;
 
-    QPen pen(Qt::red);
-    pen.setStyle(Qt::SolidLine);
-    pen.setCapStyle(Qt::RoundCap);
-    pen.setWidth(2);
+    if(!straightLine) {
+        if(!drawing) {
+            x2 = event->x();
+            y2 = event->y();
 
+            QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
+            if(it != this->scene()->items().end()) {
+                this->scene()->removeItem(*(it));
+            }
+            this->scene()->addLine(x1, y1, x2, y2, *pen);
 
-    if(!drawing) {
-//        drawing = (event->buttons() & Qt::LeftButton);
-
-//        if(drawing) {
-//            x1 = event->x() - 10;
-//            y1 = event->y() - 10;
-//        }
-
-        x2 = event->x() - 10;
-        y2 = event->y() - 10;
-
-        QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
-        if(it != this->scene()->items().end()) {
-            this->scene()->removeItem(*(it));
-        }
-
-        pen.setColor(GraphicsView::colorDrawing->rgb());
-        this->scene()->addLine(x1, y1, x2, y2, pen);
-
-    } else {
-        x2 = event->x() - 10;
-        y2 = event->y() - 10;
-
-        if(event->buttons() & Qt::LeftButton) {
-            drawing = false;
         } else {
+            x2 = event->x();
+            y2 = event->y();
 
+            if(event->buttons() & Qt::LeftButton) {
+                drawing = false;
+            }
 
+            this->scene()->addLine(x1, y1, x2, y2, *pen);
         }
+    } else {
+        if(!drawing) {
+            x2 = event->x();
+            y2 = event->y();
 
-        this->scene()->addLine(x1, y1, x2, y2, pen);
+            QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
+            if(it != this->scene()->items().end()) {
+                this->scene()->removeItem(*(it));
+            }
+            this->scene()->addLine(x1, y1, x2, y2, *pen);
+
+        } else {
+            x2 = event->x();
+            y2 = event->y();
+
+            if(event->buttons() & Qt::LeftButton) {
+                drawing = false;
+            }
+
+            this->scene()->addLine(x1, y1, x2, y2, *pen);
+        }
     }
 }
 
@@ -91,4 +110,8 @@ void GraphicsView::undoLastLine() {
 void GraphicsView::enableDrawing(bool v) {
     able2Drawing = v;
     setCursor(able2Drawing ? Qt::CrossCursor : Qt::ForbiddenCursor);
+}
+
+void GraphicsView::colorDrawing(QColor c) {
+    GraphicsView::pen->setColor(c);
 }
