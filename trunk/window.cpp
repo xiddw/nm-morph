@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "window.h"
 
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
@@ -10,27 +10,46 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     imageDialog->setNameFilter(tr("Images (*.png *.jpg *bmp)"));
     imageDialog->setViewMode(QFileDialog::Detail);
 
-    QHBoxLayout *mainLayout = new QHBoxLayout();
+    QVBoxLayout *mainLayout = new QVBoxLayout();
     QSplitter *mainSplit = new QSplitter(Qt::Horizontal);
+
+    QGroupBox *opcGrp = new QGroupBox();
+    QFormLayout *opcForm = new QFormLayout();
+    opcGrp->setLayout(opcForm);
+
+    QLabel *lbl1 = new QLabel(tr("Seleccione el tipo de linea que desea usar"));
+    opcForm->addRow(lbl1);
+
+    QRadioButton *radio1 = new QRadioButton(tr("Segmentos de lineas rectas"));
+    opcForm->addRow(radio1);
+
+    QRadioButton *radio2 = new QRadioButton(tr("Linea continua a pulso"));
+    opcForm->addRow(radio2);
+
+    mainLayout->addWidget(opcGrp);
 
     mainSplit->setChildrenCollapsible(false);
 
     for(int i=0; i<2; ++i) {
         imgs[i] = new QImage();
-        view[i] = new QGraphicsView();
+        view[i] = new GraphicsView();
         scen[i] = new QGraphicsScene();
+
+//        lblRuta[i] = new QLabel(tr("as"));
         btnOpen[i] = new QPushButton(tr("Cargar imagen"));
+        btnOpen[i]->setStyleSheet("padding: 10px; ");
+        connect(btnOpen[i], SIGNAL(clicked()), this, SLOT(on_pushButton_clicked()));
 
-        frame[i] = new QFrame();
         imageContainer[i] = new QVBoxLayout();
-
+        //imageContainer[i]->addWidget(lblRuta[i]);
         imageContainer[i]->addWidget(view[i]);
         imageContainer[i]->addWidget(btnOpen[i]);
 
+        frame[i] = new QFrame();
         frame[i]->setLayout(imageContainer[i]);
-        mainSplit->addWidget(frame[i]);
 
-        connect(btnOpen[i], SIGNAL(clicked()), this, SLOT(on_pushButton_clicked()));
+        mainSplit->addWidget(frame[i]);
+        view[i]->setScene(scen[i]);
     }
 
     mainLayout->addWidget(mainSplit);
@@ -49,6 +68,11 @@ MainWindow::~MainWindow() {
     delete[] imageContainer;
 }
 
+void MainWindow::on_pushButton_clicked() {
+    bool pos = (sender() == btnOpen[RIGTH]);
+    LoadImage(pos);
+}
+
 void MainWindow::LoadImage(bool pos) {
     QStringList fileNames;
 
@@ -58,21 +82,15 @@ void MainWindow::LoadImage(bool pos) {
 
     QString imagePath = fileNames.first();
 
-    QSize scont = view[pos]->size();
-    scont -= QSize(5, 5);
+    //lblRuta[pos]->setText(imagePath);
+
+    QSize sizecont = view[pos]->size();
+    sizecont -= QSize(5, 5);
 
     imgs[pos]->load(imagePath);
 
     scen[pos]->clear();
-    scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(scont, Qt::KeepAspectRatio)));
+    scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));
+    scen[pos]->setSceneRect(0, 0, sizecont.width(), sizecont.height());
 
-    view[pos]->setScene(scen[pos]);
-}
-
-void MainWindow::on_pushButton_clicked() {
-    if(sender() == btnOpen[LEFT]) {
-        LoadImage(LEFT);
-    } else {
-        LoadImage(RIGTH);
-    }
 }
