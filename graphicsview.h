@@ -5,13 +5,14 @@
 #include <QGraphicsView>
 
 class GraphicsView : public QGraphicsView {
-public:
+public:    
     GraphicsView();
     static QColor *colorDrawing;
-    bool enableDrawing;
 
-    void cleanLines();
-    void undoLastLine();
+    void enableDrawing(bool);
+    void cleanLines(void);
+    void undoLastLine(void);
+    bool straightLine;
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -20,6 +21,7 @@ protected:
 
 private:
     bool drawing;
+    bool able2Drawing;
 
     int x1, x2, y1, y2;
 };

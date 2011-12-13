@@ -3,7 +3,7 @@
 QColor *GraphicsView::colorDrawing = new QColor(Qt::red);
 
 GraphicsView::GraphicsView()  {
-    enableDrawing = false;
+    enableDrawing(false);
     drawing = false;    
 }
 
@@ -12,7 +12,9 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent *event) {
-    if(!enableDrawing) return;
+    if(!able2Drawing) return;
+
+    setCursor(Qt::CrossCursor);
 
     if(!drawing && (event->buttons() & Qt::LeftButton)) {
         x1 = event->x() - 10;
@@ -20,14 +22,12 @@ void GraphicsView::mousePressEvent(QMouseEvent *event) {
     }
 
     drawing = (event->buttons() & Qt::LeftButton);
-    setCursor(Qt::CrossCursor);
+
 }
 
 
 void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
-    if(!enableDrawing) return;
-
-    setCursor(Qt::CrossCursor);
+    if(!able2Drawing) return;
 
     QPen pen(Qt::red);
     pen.setStyle(Qt::SolidLine);
@@ -72,8 +72,11 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
 void GraphicsView::cleanLines() {
     QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
     while(it != this->scene()->items().end()) {
-        this->scene()->removeItem(*(it++));
+        this->scene()->removeItem(*(it));
+        it = this->scene()->items().begin();
     }
+
+    enableDrawing(false);
 }
 
 void GraphicsView::undoLastLine() {
@@ -81,4 +84,11 @@ void GraphicsView::undoLastLine() {
     if(it != this->scene()->items().end()) {
         this->scene()->removeItem(*(it));
     }
+
+    if(this->scene()->items().count() == 0) enableDrawing(false);
+}
+
+void GraphicsView::enableDrawing(bool v) {
+    able2Drawing = v;
+    setCursor(able2Drawing ? Qt::CrossCursor : Qt::ForbiddenCursor);
 }
