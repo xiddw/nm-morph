@@ -3,8 +3,9 @@
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     colorPen = new QColor(Qt::red);
 
-    this->setMinimumSize(600, 400);
-
+    this->setMinimumSize(600, 420);
+    this->resize(800, 600);
+    this->setStyleSheet("QPushButton, QLabel { padding: 10px; } ");
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
     QSplitter *mainSplit = new QSplitter(Qt::Horizontal);
@@ -12,6 +13,9 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     QHBoxLayout *headLayout = new QHBoxLayout();
 
     QGroupBox *opcGrp1 = new QGroupBox(tr("Tipo de linea que desea usar"));
+    opcGrp1->setMinimumHeight(80);
+    opcGrp1->setMaximumHeight(80);
+
     QFormLayout *opcForm1 = new QFormLayout();
     opcGrp1->setLayout(opcForm1);
 
@@ -26,10 +30,11 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     mainLayout->addLayout(headLayout);
 
     QGroupBox *opcGrp2 = new QGroupBox(tr("Controles"));
+    opcGrp2->setMinimumHeight(80);
+    opcGrp2->setMaximumHeight(80);
+
     QFormLayout *opcForm2 = new QFormLayout();
     opcGrp2->setLayout(opcForm2);
-
-    //opcForm2->addRow(btnUndo);
 
     btnColor = new QPushButton("Color de pincel: ");
     lblColor = new QLabel(colorPen->name());
@@ -51,15 +56,12 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
         scen[i] = new QGraphicsScene();
 
         btnUndo[i] = new QPushButton("Deshacer ultimo trazo");
-        btnUndo[i]->setStyleSheet("padding: 10px; ");
         connect(btnUndo[i], SIGNAL(clicked()), this, SLOT(on_btnUndo_clicked()));
 
         btnClear[i] = new QPushButton("Limpiar lienzo");
-        btnClear[i]->setStyleSheet("padding: 10px; ");
         connect(btnClear[i], SIGNAL(clicked()), this, SLOT(on_btnClear_clicked()));
 
         btnOpen[i] = new QPushButton(tr("Cargar imagen"));
-        btnOpen[i]->setStyleSheet("padding: 10px; ");
         connect(btnOpen[i], SIGNAL(clicked()), this, SLOT(on_btnOpen_clicked()));
 
         imageContainer[i] = new QVBoxLayout();        
@@ -133,7 +135,7 @@ void MainWindow::on_btnColor_clicked() {
     *colorPen = diaColor->selectedColor();
     lblColor->setText(colorPen->name());
     lblColor->setPalette(QPalette(colorPen->rgb()));
-    GraphicsView::colorDrawing = colorPen;
+    GraphicsView::colorDrawing(*colorPen);
 }
 
 void MainWindow::LoadImage(bool pos) {
@@ -155,6 +157,7 @@ void MainWindow::LoadImage(bool pos) {
     scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));    
 
     view[pos]->enableDrawing(true);
+    //view[pos]->resize(sizecont);
 }
 
 void MainWindow::CleanCanvas(bool pos) {
