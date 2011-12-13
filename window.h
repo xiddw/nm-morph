@@ -2,7 +2,6 @@
 #define WINDOW_H
 
 #include <QtGui>
-#include <QMainWindow>
 #include <QFileDialog>
 
 #include <QGraphicsView>
@@ -20,13 +19,25 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+    void keyPressEvent(QKeyEvent *event);
+    //void closeEvent(QCloseEvent *event);
+
 private slots:
-    void on_pushButton_clicked();
+    void on_btnOpen_clicked();
+    void on_btnClear_clicked();
+    void on_btnUndo_clicked();
+
+    void on_btnColor_clicked();
 
 private:
     void LoadImage(bool second);
+    void CleanCanvas(bool second);
+    void UndoLineCanvas(bool second);
 
-    QFileDialog *imageDialog;
+    QFileDialog *diaImage;
+    QColorDialog *diaColor;
+    QColor *colorPen;
 
     QImage *imgs[2];
 
@@ -37,8 +48,14 @@ private:
     GraphicsView *view[2];
 
     QPushButton *btnOpen[2];
-    QLabel *lblRuta[2];
+    QLineEdit *txtRuta[2];
 
+    QLabel *lblColor;
+
+    QRadioButton *radio[2];
+
+    QPushButton *btnUndo[2], *btnClear[2];
+    QPushButton *btnColor;
 };
 
 #endif // WINDOW_H

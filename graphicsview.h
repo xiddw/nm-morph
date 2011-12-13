@@ -7,6 +7,11 @@
 class GraphicsView : public QGraphicsView {
 public:
     GraphicsView();
+    static QColor *colorDrawing;
+    bool enableDrawing;
+
+    void cleanLines();
+    void undoLastLine();
 
 protected:
     void mousePressEvent(QMouseEvent *event);
