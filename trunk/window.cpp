@@ -46,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
         imgs[i] = new QImage();
 
         view[i] = new GraphicsView();
-        view[i]->enableDrawing = false;
+        view[i]->enableDrawing(false);
 
         scen[i] = new QGraphicsScene();
 
@@ -118,12 +118,12 @@ void MainWindow::on_btnOpen_clicked() {
 
 
 void MainWindow::on_btnClear_clicked() {
-    bool pos = (sender() == btnOpen[RIGTH]);
+    bool pos = (sender() == btnClear[RIGTH]);
     CleanCanvas(pos);
 }
 
 void MainWindow::on_btnUndo_clicked() {
-    bool pos = (sender() == btnOpen[RIGTH]);
+    bool pos = (sender() == btnUndo[RIGTH]);
     UndoLineCanvas(pos);
 }
 
@@ -139,9 +139,7 @@ void MainWindow::on_btnColor_clicked() {
 void MainWindow::LoadImage(bool pos) {
     QStringList fileNames;
 
-    if (!diaImage->exec()) {
-        return;
-    }
+    if (!diaImage->exec()) return;
 
     fileNames = diaImage->selectedFiles();
 
@@ -153,10 +151,10 @@ void MainWindow::LoadImage(bool pos) {
     imgs[pos]->load(imagePath);
 
     scen[pos]->clear();
-    scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));
     scen[pos]->setSceneRect(0, 0, sizecont.width(), sizecont.height());
+    scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));    
 
-    view[pos]->enableDrawing = true;
+    view[pos]->enableDrawing(true);
 }
 
 void MainWindow::CleanCanvas(bool pos) {
