@@ -3,7 +3,7 @@
 QPen *GraphicsView::pen = NULL;
 bool GraphicsView::straightLine = true;
 
-GraphicsView::GraphicsView()  {
+GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
     enableDrawing(false);
 
     drawing = false;    
@@ -14,7 +14,15 @@ GraphicsView::GraphicsView()  {
     pen->setCapStyle(Qt::RoundCap);
     pen->setWidth(2);
     pen->setColor(Qt::red);
+
+    timer = new QTimer();
+    timer->setInterval(100);
+    //timer->setSingleShot(true);
+
+    connect(timer, SIGNAL(timeout()), this, SLOT(resizeImages()));
 }
+
+GraphicsView::~GraphicsView() {}
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event) {
     drawing = false;
@@ -64,6 +72,20 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
     }
 
     this->scene()->addLine(x1, y1, x2, y2, *pen);
+}
+
+void GraphicsView::resizeEvent(QResizeEvent *event) {
+    timer->start();
+}
+
+void GraphicsView::resizeImages(void) {
+    QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
+    QList<QGraphicsItem *>::Iterator end = this->scene()->items().end();
+
+    while(it != end) {
+        this->fitInView(*it, Qt::KeepAspectRatio);
+        it++;
+    }
 }
 
 void GraphicsView::cleanLines() {

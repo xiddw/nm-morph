@@ -5,8 +5,11 @@
 #include <QGraphicsView>
 
 class GraphicsView : public QGraphicsView {
+    Q_OBJECT
+
 public:    
-    GraphicsView();
+    GraphicsView(QWidget *parent = 0);
+    ~GraphicsView();
 
     static void colorDrawing(QColor);
     static bool straightLine;
@@ -21,11 +24,17 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void resizeEvent(QResizeEvent *event);
+
+protected slots:
+    void resizeImages();
 
 private:
     bool drawing;
     bool able2Drawing;
     static QPen *pen;
+
+    QTimer *timer;
 
     int x1, x2, y1, y2;
 };

@@ -7,8 +7,7 @@
 QT       += core gui
 
 TARGET = nm-morph
-TEMPLATE = app
-
+#TEMPLATE = app
 
 SOURCES += main.cpp \
     window.cpp \
