@@ -119,31 +119,6 @@ void MainWindow::keyPressEvent(QKeyEvent *e) {
 
 void MainWindow::on_radioLinea_toogled(bool a) {
     GraphicsView::straightLine = (sender() == radio[!a] && a);
-
-//    if(view[sender() == radio[0]]) {
-//        sender()->
-//    }
-
-//    if( view[0]->scene()->items().count() <= 1 &&
-//        view[1]->scene()->items().count() <= 1) {
-//        GraphicsView::straightLine = a;
-//        return;
-//    }
-
-//    if(GraphicsView::straightLine != a) {
-//        int ret = QMessageBox::warning(this,
-//            tr("Proyecto Final - ALN - Morphing - RJRJ"),
-//            tr("Al cambiar de t"),
-//            QMessageBox::Ok | QMessageBox::Cancel,
-//            QMessageBox::Ok
-//        );
-
-//        if(ret == QMessageBox::Ok) {
-
-//            view[0]->cleanLines();
-//            view[1]->cleanLines();
-//        }
-//    }
 }
 
 void MainWindow::on_btnOpen_clicked() {
@@ -192,8 +167,10 @@ void MainWindow::LoadImage(bool pos) {
     scen[pos]->addPixmap(QPixmap::fromImage(*imgs[pos]));
 
     view[pos]->enableDrawing(true);
-    view[pos]->fitInView(view[pos]->scene()->items().at(0), Qt::KeepAspectRatio);
-    //view[pos]->resize(sizecont);
+    //view[pos]->fitInView(view[pos]->scene()->items().at(0), Qt::KeepAspectRatio);
+    //view[pos]->fitInView(0, 0, sizecont.width(), sizecont.height(), Qt::KeepAspectRatio) ;
+    view[pos]->resize(sizecont);
+    //view[pos]->scale(2, 2);
 }
 
 void MainWindow::CleanCanvas(bool pos) {

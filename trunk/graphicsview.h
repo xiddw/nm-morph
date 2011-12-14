@@ -26,7 +26,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void resizeEvent(QResizeEvent *event);
 
-protected slots:
+private slots:
     void resizeImages();
 
 private:
