@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
     for(int i=0; i<2; ++i) {
         imgs[i] = new QImage();
+        //pix[i] = new QPixmap();
 
         view[i] = new GraphicsView();
         view[i]->enableDrawing(false);
@@ -67,11 +68,11 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
         btnOpen[i] = new QPushButton(tr("Cargar imagen"));
         connect(btnOpen[i], SIGNAL(clicked()), this, SLOT(on_btnOpen_clicked()));
 
-        imageContainer[i] = new QVBoxLayout();        
+        imageContainer[i] = new QVBoxLayout();
 
-//        txtRuta[i] = new QLineEdit();
-//        txtRuta[i]->setDisabled(true);
-//        imageContainer[i]->addWidget(txtRuta[i]);
+        //txtRuta[i] = new QLineEdit(tr("hola"));
+        //txtRuta[i]->setDisabled(true);
+        //imageContainer[i]->addWidget(txtRuta[i]);
 
         imageContainer[i]->addWidget(btnUndo[i]);
         imageContainer[i]->addWidget(btnClear[i]);
@@ -184,11 +185,14 @@ void MainWindow::LoadImage(bool pos) {
 
     imgs[pos]->load(imagePath);
 
+    //QPixmap pix = QPixmap::fromImage(imgs[pos]->scaled(imgs[pos]->size()));
     scen[pos]->clear();
     scen[pos]->setSceneRect(0, 0, sizecont.width(), sizecont.height());
-    scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));    
+    //scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));
+    scen[pos]->addPixmap(QPixmap::fromImage(*imgs[pos]));
 
     view[pos]->enableDrawing(true);
+    view[pos]->fitInView(view[pos]->scene()->items().at(0), Qt::KeepAspectRatio);
     //view[pos]->resize(sizecont);
 }
 
