@@ -19,7 +19,7 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
     timer->setInterval(100);
     //timer->setSingleShot(true);
 
-    connect(timer, SIGNAL(timeout()), this, SLOT(resizeImages()));
+    //connect(timer, SIGNAL(timeout()), this, SLOT(resizeImages()));
 }
 
 GraphicsView::~GraphicsView() {}
@@ -51,6 +51,8 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
     x2 = event->x();
     y2 = event->y();
 
+    QList<QGraphicsItem *>::Iterator end = this->scene()->items().end() - 1;
+
     if(straightLine) {
         if(!drawing) {
             QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
@@ -71,6 +73,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
         y1 = y2; event->y();
     }
 
+    //*(end)->
     this->scene()->addLine(x1, y1, x2, y2, *pen);
 }
 
