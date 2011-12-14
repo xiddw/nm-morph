@@ -1,6 +1,7 @@
 #include "graphicsview.h"
 
 QPen *GraphicsView::pen = NULL;
+bool GraphicsView::straightLine = true;
 
 GraphicsView::GraphicsView()  {
     enableDrawing(false);
@@ -22,7 +23,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event) {
 void GraphicsView::mousePressEvent(QMouseEvent *event) {
     if(!able2Drawing) return;
 
-    if(!straightLine) {
+    if(straightLine) {
         if(!drawing && (event->buttons() & Qt::LeftButton)) {
             x1 = event->x();
             y1 = event->y();
@@ -30,12 +31,8 @@ void GraphicsView::mousePressEvent(QMouseEvent *event) {
 
         drawing = (event->buttons() & Qt::LeftButton);
     } else {
-        if(!drawing && (event->buttons() & Qt::LeftButton)) {
-            x1 = event->x();
-            y1 = event->y();
-        }
-
-        drawing = (event->buttons() & Qt::LeftButton);
+        x1 = event->x();
+        y1 = event->y();
     }
 }
 
@@ -43,49 +40,30 @@ void GraphicsView::mousePressEvent(QMouseEvent *event) {
 void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
     if(!able2Drawing) return;
 
-    if(!straightLine) {
-        if(!drawing) {
-            x2 = event->x();
-            y2 = event->y();
+    x2 = event->x();
+    y2 = event->y();
 
+    if(straightLine) {
+        if(!drawing) {
             QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
             if(it != this->scene()->items().end()) {
                 this->scene()->removeItem(*(it));
             }
-            this->scene()->addLine(x1, y1, x2, y2, *pen);
-
         } else {
-            x2 = event->x();
-            y2 = event->y();
-
             if(event->buttons() & Qt::LeftButton) {
                 drawing = false;
-            }
 
-            this->scene()->addLine(x1, y1, x2, y2, *pen);
+                x1 = event->x();
+                y1 = event->y();
+            }
         }
     } else {
-        if(!drawing) {
-            x2 = event->x();
-            y2 = event->y();
-
-            QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
-            if(it != this->scene()->items().end()) {
-                this->scene()->removeItem(*(it));
-            }
-            this->scene()->addLine(x1, y1, x2, y2, *pen);
-
-        } else {
-            x2 = event->x();
-            y2 = event->y();
-
-            if(event->buttons() & Qt::LeftButton) {
-                drawing = false;
-            }
-
-            this->scene()->addLine(x1, y1, x2, y2, *pen);
-        }
+        this->scene()->addLine(x1, y1, x2, y2, *pen);
+        x1 = x2; event->x();
+        y1 = y2; event->y();
     }
+
+    this->scene()->addLine(x1, y1, x2, y2, *pen);
 }
 
 void GraphicsView::cleanLines() {

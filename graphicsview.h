@@ -9,11 +9,13 @@ public:
     GraphicsView();
 
     static void colorDrawing(QColor);
+    static bool straightLine;
+
     void enableDrawing(bool);
 
     void cleanLines(void);
     void undoLastLine(void);
-    bool straightLine;
+
 
 protected:
     void mousePressEvent(QMouseEvent *event);

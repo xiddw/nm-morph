@@ -30,6 +30,8 @@ private slots:
 
     void on_btnColor_clicked();
 
+    void on_radioLinea_toogled(bool);
+
 private:
     void LoadImage(bool second);
     void CleanCanvas(bool second);
