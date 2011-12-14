@@ -6,6 +6,7 @@
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <algorithm>
 
 #include "graphicsview.h"
 
@@ -29,6 +30,7 @@ private slots:
     void on_btnUndo_clicked();
 
     void on_btnColor_clicked();
+    void on_btnProcess_clicked();
 
     void on_radioLinea_toogled(bool);
 
@@ -37,19 +39,23 @@ private:
     void CleanCanvas(bool second);
     void UndoLineCanvas(bool second);
 
+    int wimg, himg;
+    bool loadimg[2];
+
     QFileDialog *diaImage;
     QColorDialog *diaColor;
     QColor *colorPen;
 
-    QImage *imgs[2];
+    QImage *imgs[4];
 
-    QFrame *frame[2];
-    QVBoxLayout *imageContainer[2];
+    QFrame *frame[3];
+    QVBoxLayout *imageContainer[3];
 
-    QGraphicsScene *scen[2];
-    GraphicsView *view[2];
+    QGraphicsScene *scen[4];
+    GraphicsView *view[4];
 
     QPushButton *btnOpen[2];
+
     QLineEdit *txtRuta[2];
 
     QLabel *lblColor;
@@ -58,6 +64,9 @@ private:
 
     QPushButton *btnUndo[2], *btnClear[2];
     QPushButton *btnColor;
+
+    QPushButton *btnProcess;
+    QPushButton *btnSave;
 };
 
 #endif // WINDOW_H

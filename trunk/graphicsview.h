@@ -4,6 +4,8 @@
 #include <QtGui>
 #include <QGraphicsView>
 
+using namespace std;
+
 class GraphicsView : public QGraphicsView {
     Q_OBJECT
 
@@ -19,6 +21,8 @@ public:
     void cleanLines(void);
     void undoLastLine(void);
 
+    vector<pair<QPoint, QPoint> > *listLine;
+    vector<QPoint> *listPoint;
 
 protected:
     void mousePressEvent(QMouseEvent *event);
