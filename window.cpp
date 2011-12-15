@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     VARA = VARP = 0.0f;
 
     this->setMinimumSize(600, 440);
-    this->resize(900, 660);
+    this->resize(1000, 660);
     this->setStyleSheet("QAbstractButton, QLabel { padding: 10px; };");
 
     QHBoxLayout *superLayout = new QHBoxLayout();
