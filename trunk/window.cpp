@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     this->resize(900, 660);
     this->setStyleSheet("QAbstractButton, QLabel { padding: 10px; };");
 
+    QHBoxLayout *superLayout = new QHBoxLayout();
+
     QVBoxLayout *mainLayout = new QVBoxLayout();
     QSplitter *mainSplit = new QSplitter(Qt::Horizontal);
 
@@ -82,6 +84,13 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
     mainSplit->setChildrenCollapsible(false);
 
+    imgs[4] = new QImage();
+    view[4] = new GraphicsView();
+    view[4]->enableDrawing(false);
+
+    scen[4] = new QGraphicsScene();
+    view[4]->setScene(scen[4]);
+
     for(int i=0; i<2; ++i) {
         imgs[i] = new QImage();
 
@@ -132,13 +141,18 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 //    imageContainer[2]->addWidget(btnSave);
     imageContainer[2]->addWidget(view[2]);
     imageContainer[2]->addWidget(view[3]);
+    imageContainer[2]->addWidget(view[4]);
 
     frame[2] = new QFrame();
     frame[2]->setLayout(imageContainer[2]);
-    mainSplit->addWidget(frame[2]);
+    //mainSplit->addWidget(frame[2]);
 
     mainLayout->addWidget(mainSplit);
-    this->setLayout(mainLayout);
+
+    superLayout->addLayout(mainLayout);
+    superLayout->addWidget(frame[2]);
+
+    this->setLayout(superLayout);
 
     diaImage = new QFileDialog(this);
     diaImage->setFileMode(QFileDialog::ExistingFile);
@@ -198,6 +212,18 @@ void MainWindow::on_btnColor_clicked() {
     GraphicsView::colorDrawing(*colorPen);
 }
 
+double dotProd(QPoint a, QPoint b) {
+    return (a.x()*b.x() + a.y()+b.y());
+}
+
+double norma(QPoint a) {
+    return sqrt(pow(a.x(), 2.0) + pow(a.y(), 2.0));
+}
+
+double norma2(QPoint a) {
+    return (pow(a.x(), 2.0) + pow(a.y(), 2.0));
+}
+
 void MainWindow::on_btnProcess_clicked() {
     VARA = this->txtvalA->text().toDouble();
     VARB = this->txtvalB->text().toDouble();
@@ -231,6 +257,7 @@ void MainWindow::on_btnProcess_clicked() {
 
     imgs[2] = new QImage(wimg, himg, imgs[0]->format());
     imgs[3] = new QImage(wimg, himg, imgs[0]->format());
+    imgs[4] = new QImage(wimg, himg, imgs[0]->format());
 
 
     QRgb white = qRgba(255, 255, 255, 100);
@@ -246,7 +273,7 @@ void MainWindow::on_btnProcess_clicked() {
 //                          f*qGreen(a) + g*qGreen(b),
 //                          f*qBlue(a) + g*qBlue(b)) ;
 //            imgs[3]->setPixel(i, j, c);
-            imgs[2]->setPixel(i, j, white);
+            imgs[4]->setPixel(i, j, white);
 
         }
     }
@@ -254,22 +281,41 @@ void MainWindow::on_btnProcess_clicked() {
     QRgb r = qRgb(255, 0, 0);
     //QRgb g = qRgb(0, 255, 0);
     QRgb b = qRgb(0, 0, 255);
-    QRgb k = qRgb(0, 0, 0);
 
     if(GraphicsView::straightLine) {
+
+//        pair<QPoint, QPoint> abc;
+
+//        abc = make_pair(QPoint(0, 4), QPoint(9, 0));
+//        view[0]->listLine->push_back(abc);
+//        view[1]->listLine->push_back(abc);
+
+//        abc = make_pair(QPoint(4, 4), QPoint(7, 1));
+//        view[0]->listAux->push_back(abc);
+//        view[1]->listAux->push_back(abc);
+
+//        abc = make_pair(QPoint(0, 4), QPoint(9, 9));
+//        view[0]->listLine->push_back(abc);
+//        view[1]->listLine->push_back(abc);
+
+//        abc = make_pair(QPoint(0, 4), QPoint(7, 8));
+//        view[0]->listAux->push_back(abc);
+//        view[1]->listAux->push_back(abc);
+
+
         int lenght = view[0]->listLine->size();
 
-        for(int i=0; i<lenght; ++i) {
+        for(int k=0; k<lenght; ++k) {
             double x3, x4, y3, y4;
             x3 = x4 = 0;
             y3 = y4 = 0;
 
             for(int h=0; h<2; ++h) {
-                double x1 = view[h]->listLine->at(i).first.x();
-                double y1 = view[h]->listLine->at(i).first.y();
+                double x1 = view[h]->listLine->at(k).first.x();
+                double y1 = view[h]->listLine->at(k).first.y();
 
-                double x2 = view[h]->listLine->at(i).second.x();
-                double y2 = view[h]->listLine->at(i).second.y();
+                double x2 = view[h]->listLine->at(k).second.x();
+                double y2 = view[h]->listLine->at(k).second.y();
 
                 double m = (y2 - y1) / (x2 - x1);
 
@@ -287,7 +333,7 @@ void MainWindow::on_btnProcess_clicked() {
 
                     while(x1 < x2) {
                         y1 = m*(x1 - x2) + y2;
-                        imgs[2]->setPixel(x1, y1, h?r:b);
+                        imgs[4]->setPixel(x1, y1, h?r:b);
                         x1 += 0.01;
                     }
                 } else {
@@ -298,7 +344,7 @@ void MainWindow::on_btnProcess_clicked() {
 
                     while(y1 < y2) {
                         x1 = (y1 - y2)/m + x2;
-                        imgs[2]->setPixel(x1, y1, h?r:b);
+                        imgs[4]->setPixel(x1, y1, h?r:b);
                         y1 += 0.01;
                     }
                 }
@@ -318,7 +364,7 @@ void MainWindow::on_btnProcess_clicked() {
 
                 while(x3 < x4) {
                     y3 = m*(x3 - x4) + y4;
-                    imgs[2]->setPixel(x3, y3, k);
+                    imgs[4]->setPixel(x3, y3, qRgb(0, 0, 0));
                     x3 += 0.01;
                 }
             } else {
@@ -329,7 +375,7 @@ void MainWindow::on_btnProcess_clicked() {
 
                 while(y3 < y4) {
                     x3 = (y3 - y4)/m + x4;
-                    imgs[2]->setPixel(x3, y3, k);
+                    imgs[4]->setPixel(x3, y3, qRgb(0, 0, 0));
                     y3 += 0.01;
                 }
             }
@@ -337,6 +383,7 @@ void MainWindow::on_btnProcess_clicked() {
 
         vector< pair<QPoint, double> >* posibles;
         posibles = new vector< pair<QPoint, double> >();
+
 
         for(int h=0; h<2; ++h) {
             int n = 0;
@@ -354,27 +401,38 @@ void MainWindow::on_btnProcess_clicked() {
                         QPoint P = view[h]->listLine->at(k).first;
                         QPoint Q = view[h]->listLine->at(k).second;
 
-                        QVector2D XP(X - P);
-                        QVector2D QP(Q - P);
+//                        if(Q.y() < P.y()) {
+//                            swap(Q, P);
+//                        }
 
-                        QVector2D pQP(-QP.y(), QP.x());
+                        QPoint XP = X - P;
+                        QPoint QP = Q - P;
+
+                        QPoint pQP;
+                        pQP.setX(QP.y());
+                        pQP.setY(-QP.x());
 
                         // Calcular u, v
-                        u = QVector2D::dotProduct(XP, QP) /  QP.lengthSquared();
-                        v = QVector2D::dotProduct(XP, pQP) / QP.length();
+                        u = dotProd(XP, QP) / norma2(QP);
+                        v = dotProd(XP, pQP) / norma(QP);
 
                         // Obtener puntos interpolados de linea de referencia
                         QPoint P2 = view[h]->listAux->at(k).first;
                         QPoint Q2 = view[h]->listAux->at(k).second;
 
-                        QVector2D Q2P2(Q2 - P2);
-                        QVector2D pQ2P2(-Q2P2.y(), Q2P2.x());
+//                        if(Q2.y() < P2.y()) {
+//                            swap(Q2, P2);
+//                        }
 
-                        QVector2D X2(P2);
-                        X2 += u * Q2P2;
-                        X2 += (v * pQ2P2) / Q2P2.length();
+                        QPoint Q2P2 = Q2 - P2;
+                        QPoint pQ2P2;
+                        pQ2P2.setX(Q2P2.y());
+                        pQ2P2.setY(-Q2P2.x());
 
-                        QPoint p(X2.x() - i, X2.y() - j);
+                        QPoint X2 = P2 + u*Q2P2 + (v * pQ2P2) / norma(Q2P2);
+
+                        //QPoint p(X2.x() - i, X2.y() - j);
+                        QPoint p = X2 - X;
 
                         double dist = 0;
                         if(u > 0 && u < 1) dist = fabs(v);
@@ -382,11 +440,13 @@ void MainWindow::on_btnProcess_clicked() {
                         else dist = sqrt(pow(X.x() - Q.x(), 2.0) + pow(X.y() - Q.y(), 2.0));
 
                         double w = 0;
-                        w =  pow(QP.length(), VARP);
+                        w =  pow(norma(QP), VARP);
                         w /= (VARA + dist);
                         w = pow(w, VARB);
 
                         posibles->push_back(make_pair(p, w));
+
+                        //printf("(%d, %d);  %.4f\n", p.x(), p.y(), w);
                     }
 
                     QPoint sum(0.0, 0.0);
@@ -405,11 +465,10 @@ void MainWindow::on_btnProcess_clicked() {
                     if(X2.y() < himg && X2.y() > 0.5) {
                         y0 = ceil(X2.y());
                     } else if(X2.y() >= himg) {
-                        y0 = himg-1;
+                        y0 = himg - 1;
                     } else {
                         y0 = 0;
                     }
-
 
                     if(X2.x() < wimg && X2.x() > 0.5) {
                         x0 = ceil(X2.x());
@@ -419,16 +478,8 @@ void MainWindow::on_btnProcess_clicked() {
                         x0 = 0;
                     }
 
-//                    if(X2.x() >= wimg) X2.setX(wimg-1);
-//                    else if(X2.x() < 0) X2.setX(0);
-//                    else X2.setX((int)X2.x());
-//                    if(X2.y() >= himg) X2.setY(himg-1);
-//                    else if(X2.y() < 0) X2.setY(0);
-//                    else X2.setY((int)X2.y());
-
                     if(X2 == X)  n++;
-
-                    imgs[3]->setPixel(X, imgs[1]->pixel(x0, y0));
+                    imgs[h+2]->setPixel(X, imgs[h]->pixel(X2));
                 }
             }
 
@@ -449,18 +500,22 @@ void MainWindow::on_btnProcess_clicked() {
         }
     }
 
-    QSize s = view[2]->size();
-    scen[2]->clear();
-    scen[2]->setSceneRect(0, 0, wimg, himg);
-    scen[2]->addPixmap(QPixmap::fromImage(*imgs[2])); //->scaled(s, Qt::KeepAspectRatio)));
+    for(int h=2; h<5; ++h) {
 
-    view[2]->fitInView(*view[2]->scene()->items().begin(), Qt::KeepAspectRatio);
+    //QSize s = view[2]->size();
+    scen[h]->clear();
+    scen[h]->setSceneRect(0, 0, wimg, himg);
+    scen[h]->addPixmap(QPixmap::fromImage(*imgs[h]));
 
-    scen[3]->clear();
-    scen[3]->setSceneRect(0, 0, wimg, himg);
-    scen[3]->addPixmap(QPixmap::fromImage(*imgs[3])); //->scaled(s, Qt::KeepAspectRatio)));
+    view[h]->fitInView(*view[h]->scene()->items().begin(), Qt::KeepAspectRatio);
 
-    view[3]->fitInView(*view[3]->scene()->items().begin(), Qt::KeepAspectRatio);
+    }
+
+//    scen[3]->clear();
+//    scen[3]->setSceneRect(0, 0, wimg, himg);
+//    scen[3]->addPixmap(QPixmap::fromImage(*imgs[3])); //->scaled(s, Qt::KeepAspectRatio)));
+
+//    view[3]->fitInView(*view[3]->scene()->items().begin(), Qt::KeepAspectRatio);
 }
 
 void MainWindow::on_btnSave_clicked() {

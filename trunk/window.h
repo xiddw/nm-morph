@@ -49,13 +49,13 @@ private:
     QColorDialog *diaColor;
     QColor *colorPen;
 
-    QImage *imgs[4];
+    QImage *imgs[5];
 
     QFrame *frame[3];
     QVBoxLayout *imageContainer[3];
 
-    QGraphicsScene *scen[4];
-    GraphicsView *view[4];
+    QGraphicsScene *scen[5];
+    GraphicsView *view[5];
 
     QPushButton *btnOpen[2];
 
