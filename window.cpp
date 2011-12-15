@@ -145,6 +145,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
     frame[2] = new QFrame();
     frame[2]->setLayout(imageContainer[2]);
+    frame[2]->setMaximumWidth(300);
     //mainSplit->addWidget(frame[2]);
 
     mainLayout->addWidget(mainSplit);
