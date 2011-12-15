@@ -31,6 +31,7 @@ private slots:
 
     void on_btnColor_clicked();
     void on_btnProcess_clicked();
+    void on_btnSave_clicked();
 
     void on_radioLinea_toogled(bool);
 
