@@ -17,8 +17,6 @@ HEADERS  += \
     window.h \
     graphicsview.h
 
-FORMS    +=
-
 
 
 
