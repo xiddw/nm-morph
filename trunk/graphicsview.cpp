@@ -20,6 +20,8 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
     pen->setColor(Qt::red);
 
     listLine = new vector<pair <QPoint, QPoint> >();
+    listAux = new vector<pair <QPoint, QPoint> >();
+
     listPoint = new vector<QPoint>();
 
     timer = new QTimer();
@@ -102,10 +104,11 @@ void GraphicsView::cleanLines() {
         it = this->scene()->items().begin();
     }
 
-    if(straightLine)
+    if(straightLine) {
         listLine->clear();
-    else
+    } else {
         listPoint->clear();
+    }
 
     enableDrawing(false);
 }
@@ -114,12 +117,12 @@ void GraphicsView::undoLastLine() {
     QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
     if(it != this->scene()->items().end()) {
         this->scene()->removeItem(*(it));
-    }
 
-    if(straightLine)
-        listLine->pop_back();
-    else
-        listPoint->pop_back();
+        if(straightLine)
+            listLine->pop_back();
+        else
+            listPoint->pop_back();
+    }
 
     if(this->scene()->items().count() == 0) enableDrawing(false);
 }

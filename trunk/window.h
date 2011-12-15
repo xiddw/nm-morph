@@ -40,6 +40,8 @@ private:
     void UndoLineCanvas(bool second);
 
     int wimg, himg;
+    double VARA, VARP, VARB;
+
     bool loadimg[2];
 
     QFileDialog *diaImage;
@@ -64,6 +66,8 @@ private:
 
     QPushButton *btnUndo[2], *btnClear[2];
     QPushButton *btnColor;
+
+    QLineEdit *txtvalA, *txtvalB, *txtvalP;
 
     QPushButton *btnProcess;
     QPushButton *btnSave;
