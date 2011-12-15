@@ -137,8 +137,6 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     connect(btnSave, SIGNAL(clicked()), this, SLOT(on_btnSave_clicked()));
     opcForm2->addRow(btnSave);
 
-//    imageContainer[2]->addWidget(btnProcess);
-//    imageContainer[2]->addWidget(btnSave);
     imageContainer[2]->addWidget(view[2]);
     imageContainer[2]->addWidget(view[3]);
     imageContainer[2]->addWidget(view[4]);
@@ -146,7 +144,6 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     frame[2] = new QFrame();
     frame[2]->setLayout(imageContainer[2]);
     frame[2]->setMaximumWidth(300);
-    //mainSplit->addWidget(frame[2]);
 
     mainLayout->addWidget(mainSplit);
 
@@ -214,7 +211,7 @@ void MainWindow::on_btnColor_clicked() {
 }
 
 double dotProd(QPoint a, QPoint b) {
-    return (a.x()*b.x() + a.y()+b.y());
+    return (a.x()*b.x() + a.y()*b.y());
 }
 
 double norma(QPoint a) {
@@ -260,22 +257,10 @@ void MainWindow::on_btnProcess_clicked() {
     imgs[3] = new QImage(wimg, himg, imgs[0]->format());
     imgs[4] = new QImage(wimg, himg, imgs[0]->format());
 
-
     QRgb white = qRgba(255, 255, 255, 100);
     for(int i=0; i<wimg; ++i) {
         for(int j=0; j<himg; ++j) {
-//            QRgb a = imgs[0]->pixel(i, j);
-//            QRgb b = imgs[1]->pixel(i, j);
-
-//            float f = 0.5;
-//            float g = 1 - f;
-
-//            QRgb c = qRgb(f*qRed(a) + g*qRed(b),
-//                          f*qGreen(a) + g*qGreen(b),
-//                          f*qBlue(a) + g*qBlue(b)) ;
-//            imgs[3]->setPixel(i, j, c);
             imgs[4]->setPixel(i, j, white);
-
         }
     }
 
@@ -284,24 +269,6 @@ void MainWindow::on_btnProcess_clicked() {
     QRgb b = qRgb(0, 0, 255);
 
     if(GraphicsView::straightLine) {
-
-//        pair<QPoint, QPoint> abc;
-
-//        abc = make_pair(QPoint(0, 4), QPoint(9, 0));
-//        view[0]->listLine->push_back(abc);
-//        view[1]->listLine->push_back(abc);
-
-//        abc = make_pair(QPoint(4, 4), QPoint(7, 1));
-//        view[0]->listAux->push_back(abc);
-//        view[1]->listAux->push_back(abc);
-
-//        abc = make_pair(QPoint(0, 4), QPoint(9, 9));
-//        view[0]->listLine->push_back(abc);
-//        view[1]->listLine->push_back(abc);
-
-//        abc = make_pair(QPoint(0, 4), QPoint(7, 8));
-//        view[0]->listAux->push_back(abc);
-//        view[1]->listAux->push_back(abc);
 
 
         int lenght = view[0]->listLine->size();
@@ -357,7 +324,9 @@ void MainWindow::on_btnProcess_clicked() {
             view[0]->listAux->push_back(p);
             view[1]->listAux->push_back(p);
 
+            //Si x esta mas disperso que y
             if(fabs(x4-x3) > fabs(y4-y3)) {
+                // Si coordenadas estan al reves
                 if(x3 > x4) {
                     double x = x3; x3 = x4; x4 = x;
                     double y = y3; y3 = y4; y4 = y;
@@ -369,6 +338,7 @@ void MainWindow::on_btnProcess_clicked() {
                     x3 += 0.01;
                 }
             } else {
+                // Si coordenadas estan al reves
                 if(y3 > y4) {
                     double x = x3; x3 = x4; x4 = x;
                     double y = y3; y3 = y4; y4 = y;
@@ -395,16 +365,15 @@ void MainWindow::on_btnProcess_clicked() {
                     QPoint X(i, j);
                     double u, v;
 
+                    double ww[lenght];
+                    QPoint pp[lenght];
+
                     // Para cada linea
                     for(int k=0; k<lenght; ++k) {
 
                         //Obtener puntos originales de linea de referencia
                         QPoint P = view[h]->listLine->at(k).first;
                         QPoint Q = view[h]->listLine->at(k).second;
-
-//                        if(Q.y() < P.y()) {
-//                            swap(Q, P);
-//                        }
 
                         QPoint XP = X - P;
                         QPoint QP = Q - P;
@@ -421,18 +390,12 @@ void MainWindow::on_btnProcess_clicked() {
                         QPoint P2 = view[h]->listAux->at(k).first;
                         QPoint Q2 = view[h]->listAux->at(k).second;
 
-//                        if(Q2.y() < P2.y()) {
-//                            swap(Q2, P2);
-//                        }
-
                         QPoint Q2P2 = Q2 - P2;
                         QPoint pQ2P2;
                         pQ2P2.setX(Q2P2.y());
                         pQ2P2.setY(-Q2P2.x());
 
                         QPoint X2 = P2 + u*Q2P2 + (v * pQ2P2) / norma(Q2P2);
-
-                        //QPoint p(X2.x() - i, X2.y() - j);
                         QPoint p = X2 - X;
 
                         double dist = 0;
@@ -445,16 +408,16 @@ void MainWindow::on_btnProcess_clicked() {
                         w /= (VARA + dist);
                         w = pow(w, VARB);
 
-                        posibles->push_back(make_pair(p, w));
-
-                        //printf("(%d, %d);  %.4f\n", p.x(), p.y(), w);
+                        ww[k] = w;
+                        pp[k] = p;
+                        //posibles->push_back(make_pair(p, w));
                     }
 
                     QPoint sum(0.0, 0.0);
                     double wsum = 0;
                     for(int k=0; k<lenght; ++k) {
-                        sum  += posibles->at(k).first * posibles->at(k).second;
-                        wsum += posibles->at(k).second;
+                        sum  += ww[k] * pp[k];
+                        wsum += ww[k];
                     }
 
                     sum /= wsum;
@@ -480,11 +443,11 @@ void MainWindow::on_btnProcess_clicked() {
                     }
 
                     if(X2 == X)  n++;
-                    imgs[h+2]->setPixel(X, imgs[h]->pixel(X2));
+                    imgs[h+2]->setPixel(X, imgs[h]->pixel(x0, y0));
                 }
             }
 
-            printf("Imagen %02d: %d / %d ", h+1, n, (wimg * himg));
+            //printf("Imagen %02d: %d / %d ", h+1, n, (wimg * himg));
         }
 
 
@@ -502,21 +465,12 @@ void MainWindow::on_btnProcess_clicked() {
     }
 
     for(int h=2; h<5; ++h) {
+        scen[h]->clear();
+        scen[h]->setSceneRect(0, 0, wimg, himg);
+        scen[h]->addPixmap(QPixmap::fromImage(*imgs[h]));
 
-    //QSize s = view[2]->size();
-    scen[h]->clear();
-    scen[h]->setSceneRect(0, 0, wimg, himg);
-    scen[h]->addPixmap(QPixmap::fromImage(*imgs[h]));
-
-    view[h]->fitInView(*view[h]->scene()->items().begin(), Qt::KeepAspectRatio);
-
+        view[h]->fitInView(*view[h]->scene()->items().begin(), Qt::KeepAspectRatio);
     }
-
-//    scen[3]->clear();
-//    scen[3]->setSceneRect(0, 0, wimg, himg);
-//    scen[3]->addPixmap(QPixmap::fromImage(*imgs[3])); //->scaled(s, Qt::KeepAspectRatio)));
-
-//    view[3]->fitInView(*view[3]->scene()->items().begin(), Qt::KeepAspectRatio);
 }
 
 void MainWindow::on_btnSave_clicked() {
