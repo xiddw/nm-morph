@@ -240,12 +240,12 @@ void MainWindow::on_btnProcess_clicked() {
             float f = 0.5;
             float g = 1 - f;
 
-            QRgb c = qRgb(f*qRed(a) + g*qRed(b),
-                          f*qGreen(a) + g*qGreen(b),
-                          f*qBlue(a) + g*qBlue(b)) ;
-
+//            QRgb c = qRgb(f*qRed(a) + g*qRed(b),
+//                          f*qGreen(a) + g*qGreen(b),
+//                          f*qBlue(a) + g*qBlue(b)) ;
+//            imgs[3]->setPixel(i, j, c);
             imgs[2]->setPixel(i, j, white);
-            imgs[3]->setPixel(i, j, c);
+
         }
     }
 
@@ -371,6 +371,7 @@ void MainWindow::on_btnProcess_clicked() {
                         X2 += v * pQ2P2 / Q2P2.length();
 
                         QPoint p(X2.x() - i, X2.y() - j);
+
                         double w = 0;
                         w =  pow(QP.length(), VARP);
                         w /= pow(VARA + v, VARB);
@@ -378,6 +379,26 @@ void MainWindow::on_btnProcess_clicked() {
                         posibles->push_back(make_pair(p, w));
                     }
 
+                    QPoint sum(0, 0);
+                    double wsum = 0;
+                    for(int k=0; k<lenght; ++k) {
+                        sum += posibles->at(k).first * posibles->at(k).second;
+                        wsum += posibles->at(k).second;
+                    }
+
+                    sum /= wsum;
+
+                    QPoint X2 = X + sum;
+
+                    if(X2.x() >= wimg) X2.setX(wimg-1);
+                    else if(X2.x() < 0.5) X2.setX(0);
+                    else X2.setX((int)X2.x());
+
+                    if(X2.y() >= himg) X2.setY(himg-1);
+                    else if(X2.y() < 0.5) X2.setY(0);
+                    else X2.setY((int)X2.y());
+
+                    imgs[3]->setPixel(X, imgs[0]->pixel(X2));
                 }
             }
         }
