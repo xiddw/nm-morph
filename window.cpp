@@ -227,8 +227,6 @@ void MainWindow::on_btnProcess_clicked() {
     VARB = this->txtvalB->text().toDouble();
     VARP = this->txtvalP->text().toDouble();
 
-    printf("%.4f, %.4f, %.4f\n", VARA, VARB, VARP);
-
     // Revisar que ambas imagenes esten cargadas
     if(loadimg[0] && loadimg[1] == 0) {
         QMessageBox::critical(this,
@@ -443,7 +441,21 @@ void MainWindow::on_btnProcess_clicked() {
                     }
 
                     if(X2 == X)  n++;
-                    imgs[h+2]->setPixel(X, imgs[h]->pixel(x0, y0));
+                    QRgb c = imgs[h]->pixel(x0, y0);
+
+                    imgs[h+2]->setPixel(X, c);
+
+                    if(h == 0) {
+                        QRgb d = imgs[!h]->pixel(x0, y0);
+
+                        float f = 0.5;
+                        float g = 1 - f;
+
+                        QRgb e = qRgb(f*qRed(c) + g*qRed(d),
+                                      f*qGreen(c) + g*qGreen(d),
+                                      f*qBlue(c) + g*qBlue(d)) ;
+                        imgs[4]->setPixel(X, qRgba(qRed(e), qGreen(e), qBlue(e), 0.6));
+                    }
                 }
             }
 
@@ -498,7 +510,6 @@ void MainWindow::LoadImage(bool pos) {
     // Segunda imagen cargada
         if( (wimg != imgs[pos]->width()) ||
             (himg = imgs[pos]->height())) {
-
 //            QMessageBox::critical(this,
 //                tr("Proyecto Final - ALN - Morphing - RJRJ"),
 //                tr("La imagen cargada no coincide en dimensiones con la otra imagen"),
