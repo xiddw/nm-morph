@@ -3,6 +3,7 @@
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     colorPen = new QColor(Qt::red);
     wimg = himg = 0;
+    VARA = VARP = 0.0f;
 
     this->setMinimumSize(600, 440);
     this->resize(900, 660);
@@ -16,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     QGroupBox *opcGrp1 = new QGroupBox(tr("Tipo de linea que desea usar"));
     opcGrp1->setMinimumHeight(80);
     opcGrp1->setMaximumHeight(80);
+    //opcGrp1->setMinimumWidth(300);
 
     QFormLayout *opcForm1 = new QFormLayout();
     opcGrp1->setLayout(opcForm1);
@@ -36,8 +38,9 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     mainLayout->addLayout(headLayout);
 
     QGroupBox *opcGrp2 = new QGroupBox(tr("Controles"));
-    opcGrp2->setMinimumHeight(80);
-    opcGrp2->setMaximumHeight(80);
+    //opcGrp2->setMinimumWidth(300);
+    opcGrp2->setMinimumHeight(150);
+    opcGrp2->setMaximumHeight(150);
 
     QFormLayout *opcForm2 = new QFormLayout();
     opcGrp2->setLayout(opcForm2);
@@ -49,6 +52,32 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
     opcForm2->addRow(lblColor, btnColor);
     connect(btnColor, SIGNAL(clicked()), this, SLOT(on_btnColor_clicked()));
+
+    QGroupBox *opcGrp3 = new QGroupBox(tr("Parámetros"));
+    opcGrp3->setStyleSheet("QLabel { padding: 1px; }");
+    opcGrp3->setMaximumWidth(200);
+    opcGrp3->setMaximumHeight(150);
+
+    QFormLayout *opcForm3 = new QFormLayout();
+    opcGrp3->setLayout(opcForm3);
+
+    txtvalA = new QLineEdit();
+    txtvalA->setAlignment(Qt::AlignRight);
+    txtvalA->setText("0.001");
+
+    txtvalB = new QLineEdit();
+    txtvalB->setAlignment(Qt::AlignRight);
+    txtvalB->setText("2");
+
+    txtvalP = new QLineEdit();
+    txtvalP->setAlignment(Qt::AlignRight);
+    txtvalP->setText("0");
+
+    opcForm3->addRow(tr("A:"), txtvalA);
+    opcForm3->addRow(tr("B:"), txtvalB);
+    opcForm3->addRow(tr("P:"), txtvalP);
+
+    headLayout->addWidget(opcGrp3);
     headLayout->addWidget(opcGrp2);
 
     mainSplit->setChildrenCollapsible(false);
@@ -91,14 +120,16 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
 
     imageContainer[2] = new QVBoxLayout();
 
-    btnProcess = new QPushButton("¡Procesar!");
+    btnProcess = new QPushButton("Realizar morphing");
     connect(btnProcess, SIGNAL(clicked()), this, SLOT(on_btnProcess_clicked()));
+    opcForm2->addRow(btnProcess);
 
-    btnSave = new QPushButton("Guardar imagen");
+    btnSave = new QPushButton("Guardar imagen resultante");
     connect(btnSave, SIGNAL(clicked()), this, SLOT(on_btnSave_clicked()));
+    opcForm2->addRow(btnSave);
 
-    imageContainer[2]->addWidget(btnProcess);
-    imageContainer[2]->addWidget(btnSave);
+//    imageContainer[2]->addWidget(btnProcess);
+//    imageContainer[2]->addWidget(btnSave);
     imageContainer[2]->addWidget(view[2]);
     imageContainer[2]->addWidget(view[3]);
 
@@ -168,6 +199,10 @@ void MainWindow::on_btnColor_clicked() {
 }
 
 void MainWindow::on_btnProcess_clicked() {
+    VARA = this->txtvalA->text().toDouble();
+    VARB = this->txtvalB->text().toDouble();
+    VARP = this->txtvalP->text().toDouble();
+
     // Revisar que ambas imagenes esten cargadas
     if(loadimg[0] && loadimg[1] == 0) {
         QMessageBox::critical(this,
@@ -215,13 +250,11 @@ void MainWindow::on_btnProcess_clicked() {
     }
 
     QRgb r = qRgb(255, 0, 0);
-    QRgb g = qRgb(0, 255, 0);
+    //QRgb g = qRgb(0, 255, 0);
     QRgb b = qRgb(0, 0, 255);
     QRgb k = qRgb(0, 0, 0);
 
     if(GraphicsView::straightLine) {
-
-
         int lenght = view[0]->listLine->size();
 
         for(int i=0; i<lenght; ++i) {
@@ -294,16 +327,61 @@ void MainWindow::on_btnProcess_clicked() {
                 }
             }
 
-
-
-
+            pair<QPoint, QPoint> p = make_pair(QPoint(x3, y3), QPoint(x4, y4));
+            view[0]->listAux->push_back(p);
+            view[1]->listAux->push_back(p);
 
         }
 
-//        for(int i=0; i<lenght; ++i) {
-//            for(int h=0; h<2; ++h) {
-//            }
-//        }
+        vector< pair<QPoint, double> >* posibles;
+        posibles = new vector< pair<QPoint, double> >();
+
+        for(int h=0; h<2; ++h) {
+            for(int i=0; i<wimg; ++i) {
+                for(int j=0; j<himg; ++j) {
+
+                    QPoint X(i, j);
+                    double u, v;
+
+
+                    for(int k=0; k<lenght; ++k) {
+                        QPoint Q(view[h]->listLine->at(k).first);
+                        QPoint P(view[h]->listLine->at(k).second);
+
+                        QVector2D XP(X - P);
+
+                        QVector2D QP(Q - P);
+                        QVector2D pQP(Q.y() - P.y(), P.x() - Q.x());
+
+                        u = QVector2D::dotProduct(XP, QVector2D(Q - P));
+                        u /= XP.lengthSquared();
+
+                        v = QVector2D::dotProduct(XP, pQP);
+                        v /= XP.length();
+
+
+                        QPoint Q2(view[h]->listAux->at(k).first);
+                        QPoint P2(view[h]->listAux->at(k).second);
+
+                        QVector2D Q2P2(Q2 - P2);
+                        QVector2D pQ2P2(Q2.y() - P2.y(), P2.x() - Q2.x());
+
+                        QVector2D X2(P2);
+                        X2 += u * Q2P2;
+                        X2 += v * pQ2P2 / Q2P2.length();
+
+                        QPoint p(X2.x() - i, X2.y() - j);
+                        double w = 0;
+                        w =  pow(QP.length(), VARP);
+                        w /= pow(VARA + v, VARB);
+
+                        posibles->push_back(make_pair(p, w));
+                    }
+
+                }
+            }
+        }
+
 
     } else {
         for(int k=0; k<2; ++k) {

@@ -22,6 +22,8 @@ public:
     void undoLastLine(void);
 
     vector<pair<QPoint, QPoint> > *listLine;
+    vector<pair<QPoint, QPoint> > *listAux;
+
     vector<QPoint> *listPoint;
 
 protected:
