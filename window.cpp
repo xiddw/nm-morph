@@ -203,6 +203,8 @@ void MainWindow::on_btnProcess_clicked() {
     VARB = this->txtvalB->text().toDouble();
     VARP = this->txtvalP->text().toDouble();
 
+    printf("%.4f, %.4f, %.4f\n", VARA, VARB, VARP);
+
     // Revisar que ambas imagenes esten cargadas
     if(loadimg[0] && loadimg[1] == 0) {
         QMessageBox::critical(this,
@@ -234,11 +236,11 @@ void MainWindow::on_btnProcess_clicked() {
     QRgb white = qRgba(255, 255, 255, 100);
     for(int i=0; i<wimg; ++i) {
         for(int j=0; j<himg; ++j) {
-            QRgb a = imgs[0]->pixel(i, j);
-            QRgb b = imgs[1]->pixel(i, j);
+//            QRgb a = imgs[0]->pixel(i, j);
+//            QRgb b = imgs[1]->pixel(i, j);
 
-            float f = 0.5;
-            float g = 1 - f;
+//            float f = 0.5;
+//            float g = 1 - f;
 
 //            QRgb c = qRgb(f*qRed(a) + g*qRed(b),
 //                          f*qGreen(a) + g*qGreen(b),
@@ -303,6 +305,11 @@ void MainWindow::on_btnProcess_clicked() {
             }
 
             double m = (y4 - y3) / (x4 - x3);
+
+            pair<QPoint, QPoint> p = make_pair(QPoint(x3, y3), QPoint(x4, y4));
+            view[0]->listAux->push_back(p);
+            view[1]->listAux->push_back(p);
+
             if(fabs(x4-x3) > fabs(y4-y3)) {
                 if(x3 > x4) {
                     double x = x3; x3 = x4; x4 = x;
@@ -326,63 +333,66 @@ void MainWindow::on_btnProcess_clicked() {
                     y3 += 0.01;
                 }
             }
-
-            pair<QPoint, QPoint> p = make_pair(QPoint(x3, y3), QPoint(x4, y4));
-            view[0]->listAux->push_back(p);
-            view[1]->listAux->push_back(p);
-
         }
 
         vector< pair<QPoint, double> >* posibles;
         posibles = new vector< pair<QPoint, double> >();
 
         for(int h=0; h<2; ++h) {
+            int n = 0;
+
             for(int i=0; i<wimg; ++i) {
                 for(int j=0; j<himg; ++j) {
 
                     QPoint X(i, j);
                     double u, v;
 
-
+                    // Para cada linea
                     for(int k=0; k<lenght; ++k) {
-                        QPoint Q(view[h]->listLine->at(k).first);
-                        QPoint P(view[h]->listLine->at(k).second);
+
+                        //Obtener puntos originales de linea de referencia
+                        QPoint P = view[h]->listLine->at(k).first;
+                        QPoint Q = view[h]->listLine->at(k).second;
 
                         QVector2D XP(X - P);
-
                         QVector2D QP(Q - P);
-                        QVector2D pQP(Q.y() - P.y(), P.x() - Q.x());
 
-                        u = QVector2D::dotProduct(XP, QVector2D(Q - P));
-                        u /= XP.lengthSquared();
+                        QVector2D pQP(-QP.y(), QP.x());
 
-                        v = QVector2D::dotProduct(XP, pQP);
-                        v /= XP.length();
+                        // Calcular u, v
+                        u = QVector2D::dotProduct(XP, QP) /  QP.lengthSquared();
+                        v = QVector2D::dotProduct(XP, pQP) / QP.length();
 
-
-                        QPoint Q2(view[h]->listAux->at(k).first);
-                        QPoint P2(view[h]->listAux->at(k).second);
+                        // Obtener puntos interpolados de linea de referencia
+                        QPoint P2 = view[h]->listAux->at(k).first;
+                        QPoint Q2 = view[h]->listAux->at(k).second;
 
                         QVector2D Q2P2(Q2 - P2);
-                        QVector2D pQ2P2(Q2.y() - P2.y(), P2.x() - Q2.x());
+                        QVector2D pQ2P2(-Q2P2.y(), Q2P2.x());
 
                         QVector2D X2(P2);
                         X2 += u * Q2P2;
-                        X2 += v * pQ2P2 / Q2P2.length();
+                        X2 += (v * pQ2P2) / Q2P2.length();
 
                         QPoint p(X2.x() - i, X2.y() - j);
 
+                        double dist = 0;
+                        if(u > 0 && u < 1) dist = fabs(v);
+                        else if(u < 0) dist = sqrt(pow(X.x() - P.x(), 2.0) + pow(X.y() - P.y(), 2.0));
+                        else dist = sqrt(pow(X.x() - Q.x(), 2.0) + pow(X.y() - Q.y(), 2.0));
+
                         double w = 0;
                         w =  pow(QP.length(), VARP);
-                        w /= pow(VARA + v, VARB);
+                        w /= (VARA + dist);
+                        w = pow(w, VARB);
 
                         posibles->push_back(make_pair(p, w));
                     }
 
-                    QPoint sum(0, 0);
+                    QPoint sum(0.0, 0.0);
                     double wsum = 0;
                     for(int k=0; k<lenght; ++k) {
-                        sum += posibles->at(k).first * posibles->at(k).second;
+                        sum  += posibles->at(k).first * posibles->at(k).second;
                         wsum += posibles->at(k).second;
                     }
 
@@ -390,17 +400,39 @@ void MainWindow::on_btnProcess_clicked() {
 
                     QPoint X2 = X + sum;
 
-                    if(X2.x() >= wimg) X2.setX(wimg-1);
-                    else if(X2.x() < 0.5) X2.setX(0);
-                    else X2.setX((int)X2.x());
 
-                    if(X2.y() >= himg) X2.setY(himg-1);
-                    else if(X2.y() < 0.5) X2.setY(0);
-                    else X2.setY((int)X2.y());
+                    double y0, x0;
+                    if(X2.y() < himg && X2.y() > 0.5) {
+                        y0 = ceil(X2.y());
+                    } else if(X2.y() >= himg) {
+                        y0 = himg-1;
+                    } else {
+                        y0 = 0;
+                    }
 
-                    imgs[3]->setPixel(X, imgs[0]->pixel(X2));
+
+                    if(X2.x() < wimg && X2.x() > 0.5) {
+                        x0 = ceil(X2.x());
+                    } else if(X2.y() >= wimg) {
+                        x0 = wimg - 1;
+                    } else {
+                        x0 = 0;
+                    }
+
+//                    if(X2.x() >= wimg) X2.setX(wimg-1);
+//                    else if(X2.x() < 0) X2.setX(0);
+//                    else X2.setX((int)X2.x());
+//                    if(X2.y() >= himg) X2.setY(himg-1);
+//                    else if(X2.y() < 0) X2.setY(0);
+//                    else X2.setY((int)X2.y());
+
+                    if(X2 == X)  n++;
+
+                    imgs[3]->setPixel(X, imgs[1]->pixel(x0, y0));
                 }
             }
+
+            printf("Imagen %02d: %d / %d ", h+1, n, (wimg * himg));
         }
 
 
@@ -429,7 +461,9 @@ void MainWindow::on_btnProcess_clicked() {
     scen[3]->addPixmap(QPixmap::fromImage(*imgs[3])); //->scaled(s, Qt::KeepAspectRatio)));
 
     view[3]->fitInView(*view[3]->scene()->items().begin(), Qt::KeepAspectRatio);
-    //view[2]->resize(wimg, himg);
+}
+
+void MainWindow::on_btnSave_clicked() {
 }
 
 void MainWindow::LoadImage(bool pos) {
