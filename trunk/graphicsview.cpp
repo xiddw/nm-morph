@@ -4,9 +4,6 @@ QPen *GraphicsView::pen = NULL;
 
 bool GraphicsView::straightLine = true;
 
-//list<pair <QPoint, QPoint> >* GraphicsView::listLine = NULL;
-//list<QPoint>* GraphicsView::listPoint = NULL;
-
 GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
     enableDrawing(false);
 
@@ -16,7 +13,7 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
     pen = new QPen(Qt::red);
     pen->setStyle(Qt::SolidLine);
     pen->setCapStyle(Qt::RoundCap);
-    pen->setWidth(2);
+    pen->setWidth(1);
     pen->setColor(Qt::red);
 
     listLine = new vector<pair <QPoint, QPoint> >();
@@ -115,13 +112,23 @@ void GraphicsView::cleanLines() {
 
 void GraphicsView::undoLastLine() {
     QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
-    if(it != this->scene()->items().end()) {
-        this->scene()->removeItem(*(it));
 
-        if(straightLine)
+    if(straightLine) {
+        if(it != this->scene()->items().end()) {
+            this->scene()->removeItem(*(it));
             listLine->pop_back();
-        else
-            listPoint->pop_back();
+        }
+    } else {
+        for(int i=0; i<10; ++i) {
+            if(it != this->scene()->items().end()) {
+                this->scene()->removeItem(*(it));
+                listPoint->pop_back();
+
+                it = this->scene()->items().begin();
+            } else {
+                break;
+            }
+        }
     }
 
     if(this->scene()->items().count() == 0) enableDrawing(false);

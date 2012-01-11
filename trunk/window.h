@@ -34,11 +34,18 @@ private slots:
     void on_btnSave_clicked();
 
     void on_radioLinea_toogled(bool);
+    void on_txtValEnter();
+    void on_slider_change(int);
 
 private:
     void LoadImage(bool second);
     void CleanCanvas(bool second);
     void UndoLineCanvas(bool second);
+
+    void ChangeColorPen(QColor);
+    void CrossDisolve(int);
+
+    void ArreglameLaVida();
 
     int wimg, himg;
     double VARA, VARP, VARB;
@@ -47,7 +54,6 @@ private:
 
     QFileDialog *diaImage;
     QColorDialog *diaColor;
-    QColor *colorPen;
 
     QImage *imgs[5];
 
@@ -72,6 +78,7 @@ private:
 
     QPushButton *btnProcess;
     QPushButton *btnSave;
+    QSlider *slider;
 };
 
 #endif // WINDOW_H
