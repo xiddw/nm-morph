@@ -133,6 +133,15 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     imageContainer[2] = new QVBoxLayout();
     imageContainer[2]->addWidget(view[2]);
     imageContainer[2]->addWidget(view[3]);
+
+    slider = new QSlider(Qt::Horizontal);
+    slider->setMaximum(100);
+    slider->setMinimum(0);
+    slider->setValue(50);
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(on_slider_change(int)));
+
+    imageContainer[2]->addWidget(slider);
+
     imageContainer[2]->addWidget(view[4]);
     frame[2] = new QFrame();
     frame[2]->setLayout(imageContainer[2]);
@@ -424,26 +433,12 @@ void MainWindow::ArreglameLaVida() {
                     X2 = QPoint(x0, y0);
 
                     if(X2 == X) n++;
-                    QRgb c = imgs[h]->pixel(X2);
-
-                    imgs[h+2]->setPixel(X, c);
-
-                    if(h == 0) {
-                        QRgb d = imgs[1]->pixel(X2);
-
-                        float f = 0.5;
-                        float g = 1 - f;
-
-                        QRgb e = qRgb(f*qRed(c) + g*qRed(d),
-                                      f*qGreen(c) + g*qGreen(d),
-                                      f*qBlue(c) + g*qBlue(d)) ;
-                        imgs[4]->setPixel(X, qRgba(qRed(e), qGreen(e), qBlue(e), 0.2));
-                    }
+                    imgs[h+2]->setPixel(X, imgs[h]->pixel(X2));
                 }
             }
         }
 
-
+        this->CrossDisolve(this->slider->value());
     } else {
 //        for(int k=0; k<2; ++k) {
 //            for(int i = 0, j = view[k]->listPoint->size(); i<j; ++i) {
@@ -464,6 +459,35 @@ void MainWindow::ArreglameLaVida() {
 
         view[h]->fitInView(*view[h]->scene()->items().begin(), Qt::KeepAspectRatio);
     }
+}
+
+void MainWindow::on_slider_change(int a) {
+    CrossDisolve(a);
+}
+
+void MainWindow::CrossDisolve(int a) {
+    if(imgs[2] == NULL || imgs[3] == NULL || imgs[4] == NULL) return;
+
+    float f = a / 100.0;
+    float g = 1 - f;
+    QRgb c, d;
+    QPoint X;
+
+    for(int i=0; i<wimg; ++i) {
+        for(int j=0; j<himg; ++j) {
+            X = QPoint(i, j);
+
+            c = imgs[2]->pixel(X);
+            d = imgs[3]->pixel(X);
+
+            QRgb e = qRgb(f*qRed(c) + g*qRed(d),
+                          f*qGreen(c) + g*qGreen(d),
+                          f*qBlue(c) + g*qBlue(d)) ;
+            imgs[4]->setPixel(X, qRgba(qRed(e), qGreen(e), qBlue(e), 255));
+        }
+    }
+
+    scen[4]->addPixmap(QPixmap::fromImage(*imgs[4]));
 }
 
 void MainWindow::on_btnSave_clicked() {
