@@ -1,6 +1,7 @@
 #include "window.h"
 
-#define MAX_POINTS 10
+#define MAX_POINTS 5
+#define lambda 10
 
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     //colorPen = new QColor(Qt::red);
@@ -235,7 +236,7 @@ void MainWindow::on_btnProcess_clicked() {
 class outRange {
 public:
     int w, h;
-    outRange(int w, int h) { this->w = w; this->h = h; }
+    outRange(int _w, int _h) { this->w = _w; this->h = _h; }
 
     bool operator() (QPoint a) {
         if(a.x() < 0 || a.x() > w) return true;
@@ -300,77 +301,146 @@ void MainWindow::ArreglameLaVida() {
         }
     }
 
+    QRgb red = qRgb(255, 0, 0);
+    //QRgb g = qRgb(0, 255, 0);
+    QRgb blue = qRgb(0, 0, 255);
+
 
     if(!GraphicsView::straightLine) {
         // Para cuando se usan puntos en vez de lineas :)
 
         QRgb black = qRgba(0, 0, 0, 100);
-        for(int iii=0; iii<view[0]->totalItems; ++iii) {
-            vector<QPoint> a = *view[0]->listPoint[iii];
-            vector<QPoint> b = *view[1]->listPoint[iii];
-            a.insert(a.end(), b.begin(), b.end());
+        for(int iii=1; iii<view[0]->totalItems; ++iii) {
+            // Para cada par de líneas
 
-            for(int m=0, n=a.size(); m<n; ++m) {
-                imgs[4]->setPixel(b[m], black);
+            vector<QPoint> all = *view[0]->listPoint[iii];
+            vector<QPoint> tempV = *view[1]->listPoint[iii];
+            all.insert(all.end(), tempV.begin(), tempV.end());
+
+            for(int m=0, n=all.size(); m<n; ++m) {
+                //imgs[4]->setPixel(all[m], black);
             }
 
             // Eliminar puntos fuera de rango
             int w = imgs[0]->width();
             int h = imgs[0]->height();
-            outRange r(w, h);
-            a.erase(remove_if(a.begin(), a.end(), r), a.end());
+            outRange range(w, h);
+            all.erase(remove_if(all.begin(), all.end(), range), all.end());
 
-            if(a.size() == 0) return;
+            if(all.size() == 0) return;
 
             int maxx, maxy, minx, miny;
-            maxx = minx = a[0].x();
-            maxy = miny = a[0].y();
+            maxx = minx = all[0].x();
+            maxy = miny = all[0].y();
 
             // Encontrar los máximos y mínimos para la curva
-            for(int m=0, n=a.size(); m<n; ++m) {
-                if(a[m].x() > maxx) maxx = a[m].x();
-                if(a[m].x() < minx) minx = a[m].x();
+            for(int m=0, n=all.size(); m<n; ++m) {
+                if(all[m].x() > maxx) maxx = all[m].x();
+                if(all[m].x() < minx) minx = all[m].x();
 
-                if(a[m].y() > maxy) maxy = a[m].y();
-                if(a[m].y() < miny) miny = a[m].y();
+                if(all[m].y() > maxy) maxy = all[m].y();
+                if(all[m].y() < miny) miny = all[m].y();
             }
 
             int mx = maxx - minx;
             int my = maxy - miny;
+            int hh;
             vector<int> points;
 
-            // Ver que puntos están más dispersos
-            if(abs(mx) > abs(my)) {
-                int nn = mx * MAX_POINTS / w;
-                int bin = mx / nn;
+            int nn = mx * MAX_POINTS / w;
+            hh = mx / nn;
 
-                // Generar puntos a evaluar
+            for(int i=0, j = minx; i<nn; ++i) {
+                points.push_back(j);
+                j += hh;
+            }
 
-                for(int i=0, j = minx; i<nn; ++i) {
-                    points.push_back(j);
-                    j += bin;
-                }
+            double x1, x2;
+            double n1, n2;
 
-            } else {
-                int nn = my * MAX_POINTS / h;
-                int bin = my / nn;
+            int n = all.size();
+            int elems = points.size();
 
-                for(int i=0, j = miny; i<nn; ++i) {
-                    points.push_back(j);
-                    j += bin;
+            double **k;
+            k = new double*[elems+1];
+            for(int i=0; i<=elems; ++i) {
+                k[i] = new double[2];
+            }
+            double *b = new double[elems+1];
+            double *x = new double[elems+1];
+
+            //x1 = bigX? all[0].x() : all[0].y();
+            x1 = all[0].x();
+            x2 = points[0];
+
+            hh = x2 - x1;
+
+            for(int i=0, j=0; j<n; ++j) {
+                double xx, yy;
+                xx = all[j].x();
+                yy = all[j].y();
+
+                // Calcular N{i} y N{i+1}
+                n1 = (x2 - xx) / hh;
+                n2 = (xx - x1) / hh;
+
+                // Agregar sumatoria en k y b para cada punto evaluado
+                k[i][0] += n1*n1;
+                k[i+1][0] += n2*n2;
+
+                k[i][1] += n1*n2;
+
+                b[i] += n1*yy;
+                b[i+1] += n2*yy;
+
+                if(xx >= x2) {
+                   double f = lambda/elems;
+                   k[i][0] += f;
+                   k[i][1] += -f;
+                   k[i+1][0] += f;
+
+                   i++;
+                   if(i == elems) break;
+
+                   x2 = points[i+1];
+                   x1 = points[i];
+                   hh = x2 -x1;
                 }
             }
 
+            // Resolver sistema tridiagonal
+            for(int i=1; i<elems; i++) {
+                double m = k[i][1] / k[i-1][0];
+                k[i][0] -= m * k[i-1][1];
+                b[i] -= m * b[i-1];
+            }
 
+            x[elems-1] = b[elems-1] / k[elems-1][0];
+            for (int i=elems-2; i>=0; i--) {
+                x[i] = (b[i] - k[i][1] * x[i+1]) / k[i][0];
+            }
+
+            QPen *pen = new QPen(Qt::red);
+            pen->setStyle(Qt::SolidLine);
+            pen->setCapStyle(Qt::RoundCap);
+            pen->setWidth(2);
+            pen->setColor(Qt::red);
+
+
+            for(int cc=0; cc<elems-2; ++cc) {
+                int x3, x4, y3, y4;
+                x3 = points[cc];    x4 = points[cc+1];
+                y3 = x[cc];         y4 = x[cc+1];
+
+                pair<QPoint, QPoint> pp = make_pair(QPoint(x3, y3), QPoint(x4, y4));
+                view[0]->listAux->push_back(pp);
+                //view[1]->listLine->push_back(pp);
+            }
         }
     }
 
-    QRgb r = qRgb(255, 0, 0);
-    //QRgb g = qRgb(0, 255, 0);
-    QRgb b = qRgb(0, 0, 255);
-
+    int lenght = view[0]->listLine->size();
     if(GraphicsView::straightLine) {
-        int lenght = view[0]->listLine->size();
 
         for(int k=0; k<lenght; ++k) {
             double x3, x4, y3, y4;
@@ -400,7 +470,7 @@ void MainWindow::ArreglameLaVida() {
                     // Ir trazando linea de acuerdo a la pendiente obtenida
                     while(x1 < x2) {
                         y1 = m*(x1 - x2) + y2;
-                        imgs[4]->setPixel(x1, y1, h?r:b);
+                        imgs[4]->setPixel(x1, y1, h?red:blue);
                         x1 += 0.01;
                     }
                 } else {
@@ -410,128 +480,140 @@ void MainWindow::ArreglameLaVida() {
                     // Ir trazando linea de acuerdo a la pendiente obtenida
                     while(y1 < y2) {
                         x1 = (y1 - y2)/m + x2;
-                        imgs[4]->setPixel(x1, y1, h?r:b);
+                        imgs[4]->setPixel(x1, y1, h?red:blue);
                         y1 += 0.01;
                     }
                 }
-            }
-
-            double m = (y4 - y3) / (x4 - x3);
+            }           
 
             pair<QPoint, QPoint> p = make_pair(QPoint(x3, y3), QPoint(x4, y4));
             view[0]->listAux->push_back(p);
             view[1]->listAux->push_back(p);
-
-            //Si x esta mas disperso que y
-            if(fabs(x4-x3) > fabs(y4-y3)) {
-                // Cambiar si coordenadas estan al reves
-                if(x3 > x4) { swap(x3, x4); swap(y3, y4); }
-
-                // Ir trazando linea de acuerdo a la pendiente obtenida
-                while(x3 < x4) {
-                    y3 = m*(x3 - x4) + y4;
-                    imgs[4]->setPixel(x3, y3, qRgb(0, 0, 0));
-                    x3 += 0.01;
-                }
-            } else {
-                // Cambiar si coordenadas estan al reves
-                if(y3 > y4) { swap(x3, x4); swap(y3, y4); }
-
-                // Ir trazando linea de acuerdo a la pendiente obtenida
-                while(y3 < y4) {
-                    x3 = (y3 - y4)/m + x4;
-                    imgs[4]->setPixel(x3, y3, qRgb(0, 0, 0));
-                    y3 += 0.01;
-                }
-            }
         }
-
-        vector< pair<QPoint, double> >* posibles;
-        posibles = new vector< pair<QPoint, double> >();
-
-
-        for(int h=0; h<2; ++h) {
-            int n = 0;
-
-            for(int i=0; i<wimg; ++i) {
-                for(int j=0; j<himg; ++j) {
-
-                    QPoint X(i, j);
-                    double u, v;
-
-                    double ww[lenght];
-                    QPoint pp[lenght];
-
-                    // Para cada linea
-                    for(int k=0; k<lenght; ++k) {
-
-                        //Obtener puntos originales de linea de referencia
-                        QPoint P = view[h]->listLine->at(k).first;
-                        QPoint Q = view[h]->listLine->at(k).second;
-
-                        QVector2D XP(X - P);
-                        QVector2D QP(Q - P);
-
-                        QVector2D pQP(QP.y(), -QP.x());
-
-                        // Calcular u, v
-                        u = QVector2D::dotProduct(XP, QP) /  QP.lengthSquared();
-                        v = QVector2D::dotProduct(XP, pQP) / QP.length();
-
-                        // Obtener puntos interpolados de linea de referencia
-                        QPoint P2 = view[h]->listAux->at(k).first;
-                        QPoint Q2 = view[h]->listAux->at(k).second;
-
-                        QVector2D Q2P2(Q2 - P2);
-                        QVector2D pQ2P2(Q2P2.y(), -Q2P2.x());
-
-                        QVector2D X2 = QVector2D(P2) + u * Q2P2 + (v * pQ2P2) / Q2P2.length();
-
-                        QPoint p = X2.toPoint() - X;
-
-                        double dist = 0;
-                        if(u > 0 && u < 1) dist = fabs(v);
-                        else if(u <= 0) dist = sqrt(pow(X.x() - P.x(), 2.0) + pow(X.y() - P.y(), 2.0));
-                        else dist = sqrt(pow(X.x() - Q.x(), 2.0) + pow(X.y() - Q.y(), 2.0));
-
-                        double w = 0;
-                        w =  pow(QP.length(), VARP);
-                        w /= (VARA + dist);
-                        w = pow(w, VARB);
-
-                        ww[k] = w;
-                        pp[k] = p;
-                    }
-
-                    QPoint sum(0.0, 0.0);
-                    double wsum = 0;
-                    for(int k=0; k<lenght; ++k) {
-                        sum  += ww[k] * pp[k];
-                        wsum += ww[k];
-                    }
-                    sum /= wsum;
-
-                    QPoint X2 = X + sum;
-
-                    double y0, x0;
-                    x0 = ceil(X2.x());
-                    if(x0 < 0) x0 = 0;
-                    if(x0 >= wimg) x0 = wimg-1;
-
-                    y0 = ceil(X2.y());
-                    if(y0 < 0) y0 = 0;
-                    if(y0 >= himg) y0 = himg-1;
-
-                    X2 = QPoint(x0, y0);
-
-                    if(X2 == X) n++;
-                    imgs[h+2]->setPixel(X, imgs[h]->pixel(X2));
-                }
-            }
-        }
-
-        //this->CrossDisolve(this->slider->value());
     }
+
+
+    for(int k=0; k<view[0]->listAux->size(); ++k) {
+        double x3, x4, y3, y4;
+
+        x3 = view[0]->listAux->at(k).first.x();
+        y3 = view[0]->listAux->at(k).first.y();
+
+        x4 = view[0]->listAux->at(k).second.x();
+        y4 = view[0]->listAux->at(k).second.y();
+
+        double m = (y4 - y3) / (x4 - x3);
+        //Si x esta mas disperso que y
+        if(fabs(x4-x3) > fabs(y4-y3)) {
+            // Cambiar si coordenadas estan al reves
+            if(x3 > x4) { swap(x3, x4); swap(y3, y4); }
+
+            // Ir trazando linea de acuerdo a la pendiente obtenida
+            while(x3 < x4) {
+                y3 = m*(x3 - x4) + y4;
+                imgs[4]->setPixel(x3, y3, qRgb(0, 0, 0));
+                x3 += 0.01;
+            }
+        } else {
+            // Cambiar si coordenadas estan al reves
+            if(y3 > y4) { swap(x3, x4); swap(y3, y4); }
+
+            // Ir trazando linea de acuerdo a la pendiente obtenida
+            while(y3 < y4) {
+                x3 = (y3 - y4)/m + x4;
+                imgs[4]->setPixel(x3, y3, qRgb(0, 0, 0));
+                y3 += 0.01;
+            }
+        }
+    }
+
+
+    vector< pair<QPoint, double> >* posibles;
+    posibles = new vector< pair<QPoint, double> >();
+
+
+    for(int h=0; h<2; ++h) {
+        int n = 0;
+
+        for(int i=0; i<wimg; ++i) {
+            for(int j=0; j<himg; ++j) {
+
+                QPoint X(i, j);
+                double u, v;
+
+                double ww[lenght];
+                QPoint pp[lenght];
+
+                // Para cada linea
+                for(int k=0; k<lenght; ++k) {
+
+                    //Obtener puntos originales de linea de referencia
+                    QPoint P = view[h]->listLine->at(k).first;
+                    QPoint Q = view[h]->listLine->at(k).second;
+
+                    QVector2D XP(X - P);
+                    QVector2D QP(Q - P);
+
+                    QVector2D pQP(QP.y(), -QP.x());
+
+                    // Calcular u, v
+                    u = QVector2D::dotProduct(XP, QP) /  QP.lengthSquared();
+                    v = QVector2D::dotProduct(XP, pQP) / QP.length();
+
+                    // Obtener puntos interpolados de linea de referencia
+                    QPoint P2 = view[h]->listAux->at(k).first;
+                    QPoint Q2 = view[h]->listAux->at(k).second;
+
+                    QVector2D Q2P2(Q2 - P2);
+                    QVector2D pQ2P2(Q2P2.y(), -Q2P2.x());
+
+                    QVector2D X2 = QVector2D(P2) + u * Q2P2 + (v * pQ2P2) / Q2P2.length();
+
+                    QPoint p = X2.toPoint() - X;
+
+                    double dist = 0;
+                    if(u > 0 && u < 1) dist = fabs(v);
+                    else if(u <= 0) dist = sqrt(pow(X.x() - P.x(), 2.0) + pow(X.y() - P.y(), 2.0));
+                    else dist = sqrt(pow(X.x() - Q.x(), 2.0) + pow(X.y() - Q.y(), 2.0));
+
+                    double w = 0;
+                    w =  pow(QP.length(), VARP);
+                    w /= (VARA + dist);
+                    w = pow(w, VARB);
+
+                    ww[k] = w;
+                    pp[k] = p;
+                }
+
+                QPoint sum(0.0, 0.0);
+                double wsum = 0;
+                for(int k=0; k<lenght; ++k) {
+                    sum  += ww[k] * pp[k];
+                    wsum += ww[k];
+                }
+                sum /= wsum;
+
+                QPoint X2 = X + sum;
+
+                double y0, x0;
+                x0 = ceil(X2.x());
+                if(x0 < 0) x0 = 0;
+                if(x0 >= wimg) x0 = wimg-1;
+
+                y0 = ceil(X2.y());
+                if(y0 < 0) y0 = 0;
+                if(y0 >= himg) y0 = himg-1;
+
+                X2 = QPoint(x0, y0);
+
+                if(X2 == X) n++;
+                imgs[h+2]->setPixel(X, imgs[h]->pixel(X2));
+            }
+        }
+    }
+
+    //this->CrossDisolve(this->slider->value());
+    //}
 
     for(int h=2; h<5; ++h) {
         scen[h]->clear();

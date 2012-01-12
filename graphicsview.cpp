@@ -8,7 +8,7 @@ GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
     pen = new QPen(Qt::red);
     pen->setStyle(Qt::SolidLine);
     pen->setCapStyle(Qt::RoundCap);
-    pen->setWidth(1);
+    pen->setWidth(2);
     pen->setColor(Qt::red);
 
     reset();
