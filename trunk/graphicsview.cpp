@@ -22,17 +22,15 @@ void GraphicsView::reset() {
     enableDrawing(false);
 
     drawing = false;
-    straightLine = true;
     totalItems = 0;
 
-    //if(listLine != NULL) delete listLine;
     listLine = new vector<pair <QPoint, QPoint> >();
-
-    //if(listAux != NULL) delete listAux;
     listAux = new vector<pair <QPoint, QPoint> >();
 
-    //if(listPoint != NULL) delete listPoint;
-    listPoint = new vector<QPoint>();
+    listPoint[100] = new vector<QPoint>[100]();
+    for(int i=0; i<100; ++i) {
+        listPoint[i] = new vector<QPoint>();
+    }
 }
 
 GraphicsView::~GraphicsView() {}
@@ -54,9 +52,11 @@ void GraphicsView::mousePressEvent(QMouseEvent *event) {
     } else {
         x1 = event->x();
         y1 = event->y();
+        listPoint[totalItems-1]->push_back( QPoint(x1, y1) );
 
         this->totalItems++;
         emit this->totalChanged(totalItems);
+
     }
 }
 
@@ -85,8 +85,10 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
 
         listLine->push_back( make_pair(QPoint(x1, y1), QPoint(x2, y2) ) );
     } else {
-        listPoint->push_back( QPoint(x1, y1) );
-        listPoint->push_back( QPoint(x2, y2) );
+        QPoint a (x1, y1);
+        QPoint b (x2, y2);
+        listPoint[totalItems-1]->push_back(a);
+        listPoint[totalItems-1]->push_back(b);
 
         this->scene()->addLine(x1, y1, x2, y2, *pen);
         x1 = x2; event->x();
@@ -122,7 +124,11 @@ void GraphicsView::cleanAll() {
     if(straightLine) {
         listLine->clear();
     } else {
-        listPoint->clear();
+        for(int i=0; i<100; ++i) {
+            if(listPoint[i] != NULL)
+                listPoint[i]->clear();
+        }
+
     }
 
     enableDrawing(false);
@@ -162,16 +168,20 @@ void GraphicsView::undoLastLine() {
             emit this->totalChanged(totalItems);
         }
     } else {
-        for(int i=0; i<10; ++i) {
+        for(int i=0, j = listPoint[totalItems-1]->size();
+            i<j; ++i) {
             if(it != this->scene()->items().end()) {
                 this->scene()->removeItem(*(it));
-                listPoint->pop_back();
-
                 it = this->scene()->items().begin();
             } else {
                 break;
             }
         }
+
+        this->totalItems--;
+        emit this->totalChanged(totalItems);
+
+        listPoint[totalItems]->clear();
     }
 
     if(this->scene()->items().count() == 0) enableDrawing(false);

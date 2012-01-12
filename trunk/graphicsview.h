@@ -27,7 +27,8 @@ public:
     vector<pair<QPoint, QPoint> > *listLine;
     vector<pair<QPoint, QPoint> > *listAux;
 
-    vector<QPoint> *listPoint;
+    //vector< vector<QPoint>* > *listPoint;
+    vector<QPoint>* listPoint[100];
     int totalItems;
 
 protected:

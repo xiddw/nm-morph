@@ -1,5 +1,7 @@
 #include "window.h"
 
+#define MAX_POINTS 10
+
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     //colorPen = new QColor(Qt::red);
     wimg = himg = 0;
@@ -230,6 +232,19 @@ void MainWindow::on_btnProcess_clicked() {
     this->ArreglameLaVida();
 }
 
+class outRange {
+public:
+    int w, h;
+    outRange(int w, int h) { this->w = w; this->h = h; }
+
+    bool operator() (QPoint a) {
+        if(a.x() < 0 || a.x() > w) return true;
+        if(a.y() < 0 || a.y() > h) return true;
+
+        return false;
+    }
+};
+
 // Realizar el morphing entre las imagenes, de acuerdo a los trazos
 void MainWindow::ArreglameLaVida() {
     // Obtener parametros para el morph
@@ -249,8 +264,8 @@ void MainWindow::ArreglameLaVida() {
     }
 
     // Revisar que cada imagen tenga el mismo numero de lineas
-    if(!(GraphicsView::straightLine &&
-            view[0]->listLine->size() == view[1]->listLine->size())) {
+    if(GraphicsView::straightLine &&
+            view[0]->listLine->size() != view[1]->listLine->size()) {
         QMessageBox::critical(this,
             tr("Proyecto Final - ALN - Morphing - RJRJ"),
             tr("Las imagenes no tienen el mismo numero de lineas.") +
@@ -260,8 +275,19 @@ void MainWindow::ArreglameLaVida() {
         );
 
         return;
-    }
+    } else if(!GraphicsView::straightLine &&
+              (view[0]->totalItems != view[1]->totalItems)) {
 
+        QMessageBox::critical(this,
+            tr("Proyecto Final - ALN - Morphing - RJRJ"),
+            tr("Las imagenes no tienen el mismo numero de lineas (puntos).") +
+                "(" + QString::number(view[0]->listLine->size()) + " " +
+                    QString::number(view[1]->listLine->size()) + " ) ",
+            QMessageBox::Ok, QMessageBox::Ok
+        );
+
+        return;
+    }
 
     imgs[2] = new QImage(wimg, himg, imgs[0]->format());
     imgs[3] = new QImage(wimg, himg, imgs[0]->format());
@@ -271,6 +297,71 @@ void MainWindow::ArreglameLaVida() {
     for(int i=0; i<wimg; ++i) {
         for(int j=0; j<himg; ++j) {
             imgs[4]->setPixel(i, j, white);
+        }
+    }
+
+
+    if(!GraphicsView::straightLine) {
+        // Para cuando se usan puntos en vez de lineas :)
+
+        QRgb black = qRgba(0, 0, 0, 100);
+        for(int iii=0; iii<view[0]->totalItems; ++iii) {
+            vector<QPoint> a = *view[0]->listPoint[iii];
+            vector<QPoint> b = *view[1]->listPoint[iii];
+            a.insert(a.end(), b.begin(), b.end());
+
+            for(int m=0, n=a.size(); m<n; ++m) {
+                imgs[4]->setPixel(b[m], black);
+            }
+
+            // Eliminar puntos fuera de rango
+            int w = imgs[0]->width();
+            int h = imgs[0]->height();
+            outRange r(w, h);
+            a.erase(remove_if(a.begin(), a.end(), r), a.end());
+
+            if(a.size() == 0) return;
+
+            int maxx, maxy, minx, miny;
+            maxx = minx = a[0].x();
+            maxy = miny = a[0].y();
+
+            // Encontrar los máximos y mínimos para la curva
+            for(int m=0, n=a.size(); m<n; ++m) {
+                if(a[m].x() > maxx) maxx = a[m].x();
+                if(a[m].x() < minx) minx = a[m].x();
+
+                if(a[m].y() > maxy) maxy = a[m].y();
+                if(a[m].y() < miny) miny = a[m].y();
+            }
+
+            int mx = maxx - minx;
+            int my = maxy - miny;
+            vector<int> points;
+
+            // Ver que puntos están más dispersos
+            if(abs(mx) > abs(my)) {
+                int nn = mx * MAX_POINTS / w;
+                int bin = mx / nn;
+
+                // Generar puntos a evaluar
+
+                for(int i=0, j = minx; i<nn; ++i) {
+                    points.push_back(j);
+                    j += bin;
+                }
+
+            } else {
+                int nn = my * MAX_POINTS / h;
+                int bin = my / nn;
+
+                for(int i=0, j = miny; i<nn; ++i) {
+                    points.push_back(j);
+                    j += bin;
+                }
+            }
+
+
         }
     }
 
@@ -439,18 +530,7 @@ void MainWindow::ArreglameLaVida() {
             }
         }
 
-        this->CrossDisolve(this->slider->value());
-    } else {
-//        for(int k=0; k<2; ++k) {
-//            for(int i = 0, j = view[k]->listPoint->size(); i<j; ++i) {
-
-//                int x = view[k]->listPoint->at(i).x();
-//                int y = view[k]->listPoint->at(i).y();
-
-//                if(x >= 0 && x < wimg && y >= 0 && y < himg)
-//                    imgs[2]->setPixel(x, y, k?r:b);
-//            }
-//        }
+        //this->CrossDisolve(this->slider->value());
     }
 
     for(int h=2; h<5; ++h) {
@@ -528,7 +608,6 @@ void MainWindow::LoadImage(bool pos) {
     }
 
     view[pos]->reset();
-
     scen[pos]->clear();
     scen[pos]->setSceneRect(0, 0, sizecont.width(), sizecont.height());
     scen[pos]->addPixmap(QPixmap::fromImage(*imgs[pos]));
