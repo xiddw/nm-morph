@@ -5,26 +5,34 @@ QPen *GraphicsView::pen = NULL;
 bool GraphicsView::straightLine = true;
 
 GraphicsView::GraphicsView(QWidget *parent) : QGraphicsView(parent)  {
-    enableDrawing(false);
-
-    drawing = false;    
-    straightLine = true;
-
     pen = new QPen(Qt::red);
     pen->setStyle(Qt::SolidLine);
     pen->setCapStyle(Qt::RoundCap);
     pen->setWidth(1);
     pen->setColor(Qt::red);
 
-    listLine = new vector<pair <QPoint, QPoint> >();
-    listAux = new vector<pair <QPoint, QPoint> >();
-
-    listPoint = new vector<QPoint>();
+    reset();
 
     timer = new QTimer();
     timer->setInterval(100);
     timer->setSingleShot(true);
-    //connect(timer, SIGNAL(timeout()), this, SLOT(resizeImages()));
+}
+
+void GraphicsView::reset() {
+    enableDrawing(false);
+
+    drawing = false;
+    straightLine = true;
+    totalItems = 0;
+
+    //if(listLine != NULL) delete listLine;
+    listLine = new vector<pair <QPoint, QPoint> >();
+
+    //if(listAux != NULL) delete listAux;
+    listAux = new vector<pair <QPoint, QPoint> >();
+
+    //if(listPoint != NULL) delete listPoint;
+    listPoint = new vector<QPoint>();
 }
 
 GraphicsView::~GraphicsView() {}
@@ -46,6 +54,9 @@ void GraphicsView::mousePressEvent(QMouseEvent *event) {
     } else {
         x1 = event->x();
         y1 = event->y();
+
+        this->totalItems++;
+        emit this->totalChanged(totalItems);
     }
 }
 
@@ -58,6 +69,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
 
     if(straightLine) {
         if(!drawing) {
+            this->totalItems++;
             this->undoLastLine();
         } else {
             if(event->buttons() & Qt::LeftButton) {
@@ -65,8 +77,12 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event) {
 
                 x1 = event->x();
                 y1 = event->y();
+
+                this->totalItems++;
+                emit this->totalChanged(totalItems);
             }
         }
+
         listLine->push_back( make_pair(QPoint(x1, y1), QPoint(x2, y2) ) );
     } else {
         listPoint->push_back( QPoint(x1, y1) );
@@ -94,7 +110,9 @@ void GraphicsView::resizeImages(void) {
     }
 }
 
-void GraphicsView::cleanLines() {
+void GraphicsView::cleanAll() {
+    if(listLine->size() == 0) return;
+
     QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
     while(it != this->scene()->items().end()) {
         this->scene()->removeItem(*(it));
@@ -108,6 +126,28 @@ void GraphicsView::cleanLines() {
     }
 
     enableDrawing(false);
+    totalItems = 0;
+    emit totalChanged(totalItems);
+}
+
+void GraphicsView::cleanLines() {
+    if(listLine->begin() == listLine->end() - 1) return;
+    if(listLine->size() == 1) return;
+
+    QList<QGraphicsItem *>::Iterator it = this->scene()->items().begin();
+    while(it != this->scene()->items().end() - 1) {
+        this->scene()->removeItem(*(it));
+        it = this->scene()->items().begin();
+    }
+
+    if(straightLine) {
+        listLine->erase(listLine->begin(), listLine->end() - 1);
+    } else {
+        listLine->erase(listLine->begin(), listLine->end() - 1);
+    }
+
+    totalItems = 1;
+    emit totalChanged(totalItems);
 }
 
 void GraphicsView::undoLastLine() {
@@ -117,6 +157,9 @@ void GraphicsView::undoLastLine() {
         if(it != this->scene()->items().end()) {
             this->scene()->removeItem(*(it));
             listLine->pop_back();
+
+            this->totalItems--;
+            emit this->totalChanged(totalItems);
         }
     } else {
         for(int i=0; i<10; ++i) {
@@ -137,6 +180,9 @@ void GraphicsView::undoLastLine() {
 void GraphicsView::enableDrawing(bool v) {
     able2Drawing = v;
     setCursor(able2Drawing ? Qt::CrossCursor : Qt::ForbiddenCursor);
+
+    totalItems = v;
+    emit totalChanged(totalItems);
 }
 
 void GraphicsView::colorDrawing(QColor c) {

@@ -26,7 +26,9 @@ protected:
 
 private slots:
     void on_btnOpen_clicked();
+
     void on_btnClear_clicked();
+    void on_btnClearLines_clicked();
     void on_btnUndo_clicked();
 
     void on_btnColor_clicked();
@@ -36,6 +38,7 @@ private slots:
     void on_radioLinea_toogled(bool);
     void on_txtValEnter();
     void on_slider_change(int);
+    void UpdateCount(int);
 
 private:
     void LoadImage(bool second);
@@ -71,7 +74,7 @@ private:
 
     QRadioButton *radio[2];
 
-    QPushButton *btnUndo[2], *btnClear[2];
+    QPushButton *btnUndo[2], *btnClearLines[2], *btnClear[2];
     QPushButton *btnColor;
 
     QLineEdit *txtvalA, *txtvalB, *txtvalP;
