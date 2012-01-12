@@ -16,8 +16,11 @@ public:
     static void colorDrawing(QColor);
     static bool straightLine;
 
+    void reset();
+
     void enableDrawing(bool);
 
+    void cleanAll(void);
     void cleanLines(void);
     void undoLastLine(void);
 
@@ -25,6 +28,7 @@ public:
     vector<pair<QPoint, QPoint> > *listAux;
 
     vector<QPoint> *listPoint;
+    int totalItems;
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -34,6 +38,9 @@ protected:
 
 private slots:
     void resizeImages();
+
+signals:
+    void totalChanged(int);
 
 private:
     bool drawing;

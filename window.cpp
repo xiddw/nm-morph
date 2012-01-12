@@ -97,25 +97,31 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     for(int i=0; i<2; ++i) {
         imgs[i] = new QImage();
 
-        view[i] = new GraphicsView();
+        view[i] = new GraphicsView(this);
         view[i]->enableDrawing(false);
         view[i+2] = new GraphicsView();
         view[i+2]->enableDrawing(false);
+
+        connect(view[i], SIGNAL(totalChanged(int)), this, SLOT(UpdateCount(int)));
 
         scen[i] = new QGraphicsScene();
         scen[i+2] = new QGraphicsScene();
 
         btnUndo[i] = new QPushButton("Deshacer ultimo trazo");
-        btnClear[i] = new QPushButton("Limpiar lienzo");
+        btnClearLines[i] = new QPushButton("Deshacer todos los trazos");
+        btnClear[i] = new QPushButton("Limpiar lienzo (#items = 0)");
         btnOpen[i] = new QPushButton(tr("Cargar imagen"));
 
         connect(btnUndo[i], SIGNAL(clicked()), this, SLOT(on_btnUndo_clicked()));
-        connect(btnClear[i],SIGNAL(clicked()),this,SLOT(on_btnClear_clicked()));
+        connect(btnClearLines[i],SIGNAL(clicked()), this, SLOT(on_btnClearLines_clicked()));
+        connect(btnClear[i],SIGNAL(clicked()), this, SLOT(on_btnClear_clicked()));
         connect(btnOpen[i], SIGNAL(clicked()), this, SLOT(on_btnOpen_clicked()));
 
         imageContainer[i] = new QVBoxLayout();
 
         imageContainer[i]->addWidget(btnUndo[i]);
+        imageContainer[i]->addWidget(btnClearLines[i]);
+
         imageContainer[i]->addWidget(btnClear[i]);
         imageContainer[i]->addWidget(view[i]);
         imageContainer[i]->addWidget(btnOpen[i]);
@@ -195,6 +201,12 @@ void MainWindow::on_btnClear_clicked() {
     CleanCanvas(pos);
 }
 
+// Limpia el widget contenedor de la imagen
+void MainWindow::on_btnClearLines_clicked() {
+    bool pos = (sender() == btnClearLines[RIGTH]);
+    view[pos]->cleanLines();
+}
+
 // Deshace último trazo realizado
 void MainWindow::on_btnUndo_clicked() {
     bool pos = (sender() == btnUndo[RIGTH]);
@@ -214,24 +226,11 @@ void MainWindow::ChangeColorPen(QColor colorPen) {
     GraphicsView::colorDrawing(colorPen);
 }
 
-//double dotProd(QPoint a, QPoint b) {
-//    return (a.x()*b.x() + a.y()*b.y());
-//}
-
-//double norma(QPoint a) {
-//    return sqrt(pow(a.x(), 2.0) + pow(a.y(), 2.0));
-//}
-
-//double norma2(QPoint a) {
-//    return (pow(a.x(), 2.0) + pow(a.y(), 2.0));
-//}
-
-
-// Realizar el morphing entre las imagenes, de acuerdo a los trazos
 void MainWindow::on_btnProcess_clicked() {
     this->ArreglameLaVida();
 }
 
+// Realizar el morphing entre las imagenes, de acuerdo a los trazos
 void MainWindow::ArreglameLaVida() {
     // Obtener parametros para el morph
     VARA = this->txtvalA->text().toDouble();
@@ -254,7 +253,9 @@ void MainWindow::ArreglameLaVida() {
             view[0]->listLine->size() == view[1]->listLine->size())) {
         QMessageBox::critical(this,
             tr("Proyecto Final - ALN - Morphing - RJRJ"),
-            tr("Las imagenes no tienen el mismo numero de lineas."),
+            tr("Las imagenes no tienen el mismo numero de lineas.") +
+                "(" + QString::number(view[0]->listLine->size()) + " " +
+                    QString::number(view[1]->listLine->size()) + " ) ",
             QMessageBox::Ok, QMessageBox::Ok
         );
 
@@ -526,23 +527,19 @@ void MainWindow::LoadImage(bool pos) {
         }
     }
 
-    //QPixmap pix = QPixmap::fromImage(imgs[pos]->scaled(imgs[pos]->size()));
+    view[pos]->reset();
+
     scen[pos]->clear();
     scen[pos]->setSceneRect(0, 0, sizecont.width(), sizecont.height());
-    //scen[pos]->addPixmap(QPixmap::fromImage(imgs[pos]->scaled(sizecont, Qt::KeepAspectRatio)));
     scen[pos]->addPixmap(QPixmap::fromImage(*imgs[pos]));
-
     view[pos]->enableDrawing(true);
-    //view[pos]->fitInView(view[pos]->scene()->items().at(0), Qt::KeepAspectRatio);
-    //view[pos]->fitInView(0, 0, sizecont.width(), sizecont.height(), Qt::KeepAspectRatio) ;
     view[pos]->resize(sizecont);
-    //view[pos]->scale(2, 2);
 
     loadimg[pos] = true;
 }
 
 void MainWindow::CleanCanvas(bool pos) {
-    view[pos]->cleanLines();
+    view[pos]->cleanAll();
     loadimg[pos] = false;
 
     if(loadimg[0] && loadimg[1] == 0) {
@@ -552,4 +549,11 @@ void MainWindow::CleanCanvas(bool pos) {
 
 void MainWindow::UndoLineCanvas(bool pos) {
     view[pos]->undoLastLine();
+}
+
+void MainWindow::UpdateCount(int value) {
+    bool i = (sender() == view[RIGTH]);
+
+    QString temp = "Limpiar lienzo (#items = " + QString::number(value) + ")";
+    btnClear[i]->setText(temp);
 }
