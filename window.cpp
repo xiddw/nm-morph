@@ -1,3 +1,7 @@
+#include <QGroupBox>
+#include <QFormLayout>
+#include <QPushButton>
+#include <QMessageBox>
 #include "window.h"
 
 #define MAX_POINTS 5

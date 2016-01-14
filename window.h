@@ -3,7 +3,13 @@
 
 #include <QtGui>
 #include <QFileDialog>
+#include <QVBoxLayout>
 
+#include <QLabel>
+#include <QColorDialog>
+#include <QLineEdit>
+#include <QRadioButton>
+#include <QSlider>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <algorithm>
