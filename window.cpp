@@ -12,21 +12,21 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     this->resize(1000, 660);
     this->setStyleSheet("QAbstractButton, QLabel { padding: 6px 10px; };");
 
-    // Layout para toda la ventana
+    // Window layout
     QHBoxLayout *superLayout = new QHBoxLayout();
 
-    // Layout para componentes principales
-    // (cargar imagenes y controles)
+    // Layout for principal controls
+    // (Load images and buttons, ...)
     QVBoxLayout *mainLayout = new QVBoxLayout();
 
-    // Layout para cargar imagenes
+    // Layout to display images
     QHBoxLayout *imgLayout = new QHBoxLayout();
 
-    // Layout para controles
+    // Layout for controls
     QHBoxLayout *headLayout = new QHBoxLayout();
 
-    // Layout para Tipo de linea a usar
-    QGroupBox *opcGrp1 = new QGroupBox(tr("Tipo de linea que desea usar"));
+    // Layout para Line settings
+    QGroupBox *opcGrp1 = new QGroupBox(tr("Line type: "));
     opcGrp1->setMinimumHeight(80);
     opcGrp1->setMaximumHeight(80);
     QFormLayout *opcForm1 = new QFormLayout();
@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     opcForm2->addRow(btnSave);
 
     // Layout para Parametros de morphing
-    QGroupBox *opcGrp3 = new QGroupBox(tr("Parámetros"));
+    QGroupBox *opcGrp3 = new QGroupBox(tr("Parameters"));
     opcGrp3->setStyleSheet("QLabel { padding: 1px; }");
     opcGrp3->setMaximumWidth(200);
     opcGrp3->setMaximumHeight(150);
