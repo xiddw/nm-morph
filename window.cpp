@@ -35,10 +35,10 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     opcGrp1->setMaximumHeight(80);
     QFormLayout *opcForm1 = new QFormLayout();
     opcGrp1->setLayout(opcForm1);
-    radio[0] = new QRadioButton(tr("Segmentos de lineas rectas"));
+    radio[0] = new QRadioButton(tr("Straight line segments"));
     radio[0]->setStyleSheet("padding: 1px");    
     radio[0]->setChecked(true);    
-    radio[1] = new QRadioButton(tr("Linea continua a mano"));
+    radio[1] = new QRadioButton(tr("Freehand line"));
     radio[1]->setStyleSheet("padding: 1px");
     connect(radio[0], SIGNAL(toggled(bool)), this, SLOT(on_radioLinea_toogled(bool)));
     connect(radio[1], SIGNAL(toggled(bool)), this, SLOT(on_radioLinea_toogled(bool)));
@@ -46,14 +46,14 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     opcForm1->addRow(radio[1]);
 
     // Layout para Controles basicos
-    QGroupBox *opcGrp2 = new QGroupBox(tr("Controles"));
+    QGroupBox *opcGrp2 = new QGroupBox(tr("Controls"));
     opcGrp2->setMinimumHeight(150);
     opcGrp2->setMaximumHeight(150);
     QFormLayout *opcForm2 = new QFormLayout();
     opcGrp2->setLayout(opcForm2);
-    btnColor = new QPushButton("Color de pincel: ");
-    btnProcess = new QPushButton("Realizar morphing");
-    btnSave = new QPushButton("Guardar imagen resultante");
+    btnColor = new QPushButton("Stroke color: ");
+    btnProcess = new QPushButton("Perform morphing");
+    btnSave = new QPushButton("Save resultant image");
     lblColor = new QLabel();
     lblColor->setAutoFillBackground(true);        
     connect(btnColor,   SIGNAL(clicked()), this, SLOT(on_btnColor_clicked()));
@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     opcForm2->addRow(btnProcess);
     opcForm2->addRow(btnSave);
 
-    // Layout para Parametros de morphing
+    // Layout for morphing parameters
     QGroupBox *opcGrp3 = new QGroupBox(tr("Parameters"));
     opcGrp3->setStyleSheet("QLabel { padding: 1px; }");
     opcGrp3->setMaximumWidth(200);
@@ -86,14 +86,13 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     opcForm3->addRow(tr("B:"), txtvalB);
     opcForm3->addRow(tr("P:"), txtvalP);
 
-    // Agregar layouts de controles a cabecera
+    // Add control layouts to header layout
     headLayout->addWidget(opcGrp1);
     headLayout->addWidget(opcGrp3);
     headLayout->addWidget(opcGrp2);
     mainLayout->addLayout(headLayout);
 
-
-    // Inicializar controles para imagenes
+    // Initialize images controls
     imgs[4] = new QImage();
     view[4] = new GraphicsView();
     view[4]->enableDrawing(false);
@@ -114,10 +113,10 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
         scen[i] = new QGraphicsScene();
         scen[i+2] = new QGraphicsScene();
 
-        btnUndo[i] = new QPushButton("Deshacer ultimo trazo");
-        btnClearLines[i] = new QPushButton("Deshacer todos los trazos");
-        btnClear[i] = new QPushButton("Limpiar lienzo (#items = 0)");
-        btnOpen[i] = new QPushButton(tr("Cargar imagen"));
+        btnUndo[i] = new QPushButton("Undo last stroke");
+        btnClearLines[i] = new QPushButton("Undo all strokes");
+        btnClear[i] = new QPushButton("Clean canvas (#items = 0)");
+        btnOpen[i] = new QPushButton(tr("Load image"));
 
         connect(btnUndo[i], SIGNAL(clicked()), this, SLOT(on_btnUndo_clicked()));
         connect(btnClearLines[i],SIGNAL(clicked()), this, SLOT(on_btnClearLines_clicked()));
